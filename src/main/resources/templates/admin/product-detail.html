@@ -38,6 +38,8 @@
                 <td>
                     <form th:action="@{'/admin/product-detail/' + ${x.id} + '/toggle-status'}"
                           method="post" style="display:inline;">
+                        <input type="hidden" name="page" th:value="${currentPage}">
+                        <input type="hidden" name="size" th:value="${size}">
                         <input type="hidden" th:if="${_csrf != null}"
                                th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                         <button type="submit"
@@ -50,5 +52,26 @@
             </tr>
             </tbody>
         </table>
+        <div class="pagination" th:if="${totalPages > 1}">
+            <a th:if="${currentPage > 0}"
+               th:href="@{/admin/product-detail(page=${currentPage - 1}, size=${size})}"
+               class="btn small">
+                Trước
+            </a>
+
+            <span th:each="i : ${#numbers.sequence(0, totalPages - 1)}">
+        <a th:href="@{/admin/product-detail(page=${i}, size=${size})}"
+           class="btn small"
+           th:classappend="${i == currentPage} ? ' primary' : ''"
+           th:text="${i + 1}">
+        </a>
+    </span>
+
+            <a th:if="${currentPage < totalPages - 1}"
+               th:href="@{/admin/product-detail(page=${currentPage + 1}, size=${size})}"
+               class="btn small">
+                Sau
+            </a>
+        </div>
     </div>
 </section>

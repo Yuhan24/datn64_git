@@ -236,3 +236,10 @@ body{
 .search-form .input{
     width:250px;
 }
+.pagination{
+    margin-top:15px;
+    display:flex;
+    gap:8px;
+    align-items:center;
+    flex-wrap:wrap;
+}

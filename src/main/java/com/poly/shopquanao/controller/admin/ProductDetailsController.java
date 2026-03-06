@@ -1,7 +1,8 @@
 package com.poly.shopquanao.controller.admin;
 
 import com.poly.shopquanao.entity.SanPhamChiTiet;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import com.poly.shopquanao.repository.admin.KichCoRepository;
 import com.poly.shopquanao.repository.admin.MauSacRepository;
 import com.poly.shopquanao.repository.admin.SanPhamChiTietADMRepository;
@@ -35,15 +36,27 @@ public class ProductDetailsController {
     private MauSacRepository mauSacRepository;
 
     @GetMapping("")
-    public String index(Model model){
-        model.addAttribute("pageTitle","Sản phẩm chi tiết");
-        model.addAttribute("activeGroup","produce_detail");
-        model.addAttribute("activeMenu","produce_detail");
-        model.addAttribute("content","admin/product-detail :: content");
-        model.addAttribute("listSpct", sanPhamChiTietADMRepository.findAll());
+    public String index(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size,
+            Model model) {
+
+        Page<SanPhamChiTiet> pageData = sanPhamChiTietADMRepository.findAll(PageRequest.of(page, size));
+
+        model.addAttribute("pageTitle", "Sản phẩm chi tiết");
+        model.addAttribute("activeGroup", "product_detail");
+        model.addAttribute("activeMenu", "product_detail");
+        model.addAttribute("content", "admin/product-detail :: content");
+
+        model.addAttribute("pageData", pageData);
+        model.addAttribute("listSpct", pageData.getContent());
+
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", pageData.getTotalPages());
+        model.addAttribute("size", size);
+
         return "admin/layout";
     }
-
     @GetMapping("/add")
     public String addForm(Model model){
         model.addAttribute("pageTitle","Thêm sản phẩm chi tiết");
@@ -76,7 +89,7 @@ public class ProductDetailsController {
             return "redirect:/admin/product-detail/add";
         }
 
-// Giá bán phải > giá nhập
+       // Giá bán phải > giá nhập
         if (giaBan.compareTo(giaNhap) <= 0) {
             ra.addFlashAttribute("error", "Giá bán phải lớn hơn giá nhập");
             return "redirect:/admin/product-detail/add";
@@ -109,11 +122,15 @@ public class ProductDetailsController {
     }
 
     @PostMapping("/{id}/toggle-status")
-    public String toggle(@PathVariable Integer id){
+    public String toggle(@PathVariable Integer id,
+                         @RequestParam(defaultValue = "0") int page,
+                         @RequestParam(defaultValue = "5") int size) {
+
         SanPhamChiTiet x = sanPhamChiTietADMRepository.findById(id).orElseThrow();
         x.setTrangThai(!Boolean.TRUE.equals(x.getTrangThai()));
         sanPhamChiTietADMRepository.save(x);
-        return "redirect:/admin/product-detail";
+
+        return "redirect:/admin/product-detail?page=" + page + "&size=" + size;
     }
 
 
