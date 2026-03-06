@@ -1,15 +1,14 @@
 :root{
-    --bg:#0b1220;
-    --panel:#111a2e;
-    --panel2:#0f1730;
-    --text:#e8eefc;
-    --muted:#98a6c7;
-    --line:rgba(255,255,255,.10);
+    --bg:#ffffff;
+    --panel:#ffffff;
+    --panel2:#f5f6fa;
+    --text:#111111;
+    --muted:#6b7280;
+    --line:#e5e7eb;
     --primary:#4f8cff;
     --success:#21c47a;
     --danger:#ff5a6a;
 }
-
 *{box-sizing:border-box}
 body{
     margin:0;
@@ -28,14 +27,14 @@ body{
 .sidebar{
     padding:14px;
     border-right:1px solid var(--line);
-    background:rgba(10,16,30,.85);
+    background:#ffffff;
 }
 .brand{
     display:flex; gap:10px; align-items:center;
     padding:12px;
     border:1px solid var(--line);
     border-radius:14px;
-    background:rgba(255,255,255,.03);
+    background:#ffffff;
     margin-bottom:12px;
 }
 .logo{
