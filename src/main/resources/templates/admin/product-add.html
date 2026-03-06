@@ -1,0 +1,60 @@
+<section
+        xmlns:th="http://www.thymeleaf.org"
+
+        th:fragment="content">
+
+    <div class="card">
+
+        <h3>Thêm sản phẩm</h3>
+
+        <form th:action="@{/admin/product/save}"
+              th:object="${sanPham}"
+              method="post">
+
+            <label>Mã sản phẩm</label>
+            <input type="text" th:field="*{maSanPham}">
+
+            <label>Tên sản phẩm</label>
+            <input type="text" th:field="*{tenSanPham}">
+
+            <label>Chất Liệu</label>
+            <input type="text" th:field="*{chatLieu}">
+
+
+            <!-- THƯƠNG HIỆU -->
+            <label>Thương hiệu</label>
+            <select th:field="*{thuongHieu}">chatLieu
+                <option value="">--Chọn--</option>
+                <option th:each="th : ${listThuongHieu}"
+                        th:value="${th.id}"
+                        th:text="${th.tenThuongHieu}">
+                </option>
+            </select>
+
+
+            <!-- DANH MỤC -->
+            <label>Danh mục</label>
+            <select th:field="*{danhMuc}">
+                <option value="">--Chọn--</option>
+                <option th:each="dm : ${listDanhMuc}"
+                        th:value="${dm.id}"
+                        th:text="${dm.tenDanhMuc}">
+                </option>
+            </select>
+
+
+
+
+            <label>Trạng thái</label>
+            <select th:field="*{trangThai}">
+                <option value="true">Đang bán</option>
+                <option value="false">Ngừng bán</option>
+            </select>
+
+            <button type="submit">Lưu</button>
+
+        </form>
+
+    </div>
+
+</section>

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${title} ?: 'Admin'">Admin</title>
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
+</head>
+<body>
+<div class="app">
+
+    <aside class="sidebar">
+        <div class="brand">
+            <div class="logo">SP</div>
+            <div>
+                <b>Shop Admin</b>
+                <div class="muted">Thymeleaf • Spring Boot</div>
+            </div>
+        </div>
+
+        <div class="menu">
+            <a th:href="@{/admin/dashboard}" th:classappend="${activeMenu}=='dashboard' ? ' active' : ''">
+                <span class="dot"></span> Dashboard
+            </a>
+
+            <div class="group">Bán hàng</div>
+            <a th:href="@{/admin/pos}" th:classappend="${activeMenu}=='pos' ? ' active' : ''">
+                <span class="dot"></span> Bán hàng tại quầy
+            </a>
+            <a th:href="@{/admin/order}" th:classappend="${activeMenu}=='order' ? ' active' : ''">
+                <span class="dot"></span> Đơn hàng
+            </a>
+            <div class="group">Sản phẩm</div>
+
+            <!-- 1) Mục riêng: Sản phẩm (CRUD) -->
+            <a th:href="@{/admin/product}"
+               th:classappend="${activeMenu}=='product' ? ' active' : ''">
+                <span class="dot"></span> Sản phẩm
+            </a>
+            <!-- 2) Nhóm xổ xuống: Thuộc tính / chi tiết sản phẩm -->
+            <details class="nav-group"
+                     th:open="${activeGroup}=='product_detail'">
+
+                <summary class="nav-parent">
+                    <span class="dot"></span> Quản Lý Sản Phẩm Chi Tiết
+                </summary>
+
+                <div class="nav-children">
+
+                    <!-- ✅ TRANG CHÍNH -->
+                    <a th:href="@{/admin/product-detail}"
+                       th:classappend="${activeMenu}=='product_detail' ? ' active' : ''">
+                        Sản phẩm chi tiết
+                    </a>
+
+                    <!-- Các bảng con -->
+
+
+                    <a th:href="@{/admin/color}"
+                       th:classappend="${activeMenu}=='color' ? ' active' : ''">Màu sắc</a>
+
+                    <a th:href="@{/admin/size}"
+                       th:classappend="${activeMenu}=='size' ? ' active' : ''">Kích thước</a>
+
+                </div>
+            </details>
+            <div class="group">Khác</div>
+            <a th:href="@{/admin/user}" th:classappend="${activeMenu}=='user' ? ' active' : ''">
+                <span class="dot"></span> Người dùng
+            </a>
+            <a th:href="@{/logout}">
+                <span class="dot"></span> Logout
+            </a>
+        </div>
+    </aside>
+
+    <main class="main">
+        <div class="topbar">
+            <h2 style="margin:0" th:text="${pageTitle} ?: 'Admin Panel'">Admin Panel</h2>
+            <div class="muted">Xin chào, <b th:text="${username} ?: 'Admin'">Admin</b></div>
+        </div>
+        <div class="content" th:replace="~{__${content}__}"></div>
+
+    </main>
+<!-- Vì content của bạn là một chuỗi kiểu "admin/dashboard :: content".
+Thymeleaf cần “preprocess” chuỗi này thành fragment expression thật sự trước khi resolve template,
+ nếu không nó sẽ cố resolve sai và nổ đúng lỗi như log.-->
+</div>
+</body>
+</html>
