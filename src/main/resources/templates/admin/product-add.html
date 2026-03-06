@@ -6,6 +6,9 @@
     <div class="card">
 
         <h3>Thêm sản phẩm</h3>
+        <div th:if="${error}" class="alert error" th:text="${error}"></div>
+        <div th:if="${success}" class="alert success" th:text="${success}"></div>
+
 
         <form th:action="@{/admin/product/save}"
               th:object="${sanPham}"

@@ -220,3 +220,20 @@ body{
 .alert { padding:10px 12px; border-radius:12px; margin:10px 0; border:1px solid transparent; }
 .alert.success { border-color: rgba(0,200,120,.35); }
 .alert.error { border-color: rgba(255,80,80,.35); }
+
+.product-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:15px;
+    margin-bottom:15px;
+}
+
+.search-form{
+    display:flex;
+    gap:10px;
+}
+
+.search-form .input{
+    width:250px;
+}

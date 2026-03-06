@@ -5,8 +5,21 @@
 
     <div class="card">
         <h3 style="margin-top:0">Danh sách sản phẩm</h3>
-        <a th:href="@{/admin/product/add}" class="btn">+ Thêm sản phẩm</a>
+        <div class="product-header">
 
+            <a th:href="@{/admin/product/add}" class="btn">+ Thêm sản phẩm</a>
+
+            <form th:action="@{/admin/product}" method="get" class="search-form">
+                <input class="input"
+                       type="text"
+                       name="keyword"
+                       placeholder="Tìm theo tên sản phẩm..."
+                       th:value="${keyword}">
+                <button class="btn">Tìm</button>
+            </form>
+
+        </div>
+        </form>
         <table class="table">
             <thead>
             <tr>

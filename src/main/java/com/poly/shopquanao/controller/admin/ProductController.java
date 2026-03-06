@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 @RequestMapping("/admin/product")
@@ -29,12 +31,20 @@ public class ProductController {
 
 
     @GetMapping("")
-    public String product(Model model) {
+    public String product(@RequestParam(required = false) String keyword, Model model) {
         model.addAttribute("activeMenu", "product");
         model.addAttribute("pageTitle", "Quản lý sản phẩm");
         model.addAttribute("content", "admin/product :: content");
-        model.addAttribute("listSanPham", sanPhamADMRepository.findAll());
-        System.out.println(">>> HIT PRODUCT");
+
+        if (keyword != null && !keyword.trim().isEmpty()){
+            model.addAttribute("listSanPham" ,
+                    sanPhamADMRepository.findByTenSanPhamContainingIgnoreCase(keyword));
+        }else {
+            model.addAttribute("listSanPham",sanPhamADMRepository.findAll());
+        }
+
+            model.addAttribute("keyword",keyword );
+
         return "admin/layout.html";
     }
     @GetMapping("/add")
@@ -53,9 +63,40 @@ public class ProductController {
     }
 
     @PostMapping("/save")
-    public String save(@ModelAttribute SanPham sanPham){
+    public String save(@ModelAttribute SanPham sanPham, RedirectAttributes ra){
+
+        String ten = sanPham.getTenSanPham().trim();
+        String ma = sanPham.getMaSanPham().trim();
+
+        // ❌ check rỗng
+        if (ten.isEmpty()) {
+            ra.addFlashAttribute("error","Tên sản phẩm không được để trống");
+            return "redirect:/admin/product/add";
+        }
+
+        if (ma.isEmpty()) {
+            ra.addFlashAttribute("error","Mã sản phẩm không được để trống");
+            return "redirect:/admin/product/add";
+        }
+
+        // ❌ check trùng tên
+        if (sanPhamADMRepository.existsByTenSanPhamIgnoreCase(ten)) {
+            ra.addFlashAttribute("error","Tên sản phẩm đã tồn tại");
+            return "redirect:/admin/product/add";
+        }
+
+        // ❌ check trùng mã
+        if (sanPhamADMRepository.existsByMaSanPhamIgnoreCase(ma)) {
+            ra.addFlashAttribute("error","Mã sản phẩm đã tồn tại");
+            return "redirect:/admin/product/add";
+        }
+
+        sanPham.setTenSanPham(ten);
+        sanPham.setMaSanPham(ma);
 
         sanPhamADMRepository.save(sanPham);
+
+        ra.addFlashAttribute("success","Thêm sản phẩm thành công");
 
         return "redirect:/admin/product";
     }
