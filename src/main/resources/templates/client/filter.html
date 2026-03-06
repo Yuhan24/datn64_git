@@ -9,16 +9,19 @@
             <div class="filter-group">
                 <h6>Kích thước</h6>
 
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" name="sizeIds" value="11" id="size11"
-                           th:checked="${selectedSizeIds != null and #lists.contains(selectedSizeIds, 11)}">
-                    <label class="form-check-label" for="size11">M</label>
-                </div>
-
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" name="sizeIds" value="12" id="size12"
-                           th:checked="${selectedSizeIds != null and #lists.contains(selectedSizeIds, 12)}">
-                    <label class="form-check-label" for="size12">L</label>
+                <div class="form-check" th:each="size : ${kichCos}">
+                    <input class="form-check-input"
+                           type="checkbox"
+                           name="sizeIds"
+                           th:value="${size.id}"
+                           th:id="'size' + ${size.id}"
+                           th:checked="${selectedSizeIds != null and #lists.contains(selectedSizeIds, size.id)}"
+                           onchange="this.form.submit()">
+                    <label class="form-check-label"
+                           th:for="'size' + ${size.id}"
+                           th:text="${size.tenKichCo}">
+                        Size
+                    </label>
                 </div>
             </div>
 
@@ -26,20 +29,35 @@
                 <h6>Mức giá</h6>
 
                 <div class="form-check">
-                    <input class="form-check-input" type="checkbox" name="prices" value="duoi-300" id="price1"
-                           th:checked="${selectedPrices != null and #lists.contains(selectedPrices, 'duoi-300')}">
+                    <input class="form-check-input"
+                           type="radio"
+                           name="price"
+                           value="duoi-300"
+                           id="price1"
+                           th:checked="${selectedPrice != null and selectedPrice == 'duoi-300'}"
+                           onchange="this.form.submit()">
                     <label class="form-check-label" for="price1">Dưới 300.000đ</label>
                 </div>
 
                 <div class="form-check">
-                    <input class="form-check-input" type="checkbox" name="prices" value="300-500" id="price2"
-                           th:checked="${selectedPrices != null and #lists.contains(selectedPrices, '300-500')}">
+                    <input class="form-check-input"
+                           type="radio"
+                           name="price"
+                           value="300-500"
+                           id="price2"
+                           th:checked="${selectedPrice != null and selectedPrice == '300-500'}"
+                           onchange="this.form.submit()">
                     <label class="form-check-label" for="price2">300.000đ - 500.000đ</label>
                 </div>
 
                 <div class="form-check">
-                    <input class="form-check-input" type="checkbox" name="prices" value="tren-500" id="price3"
-                           th:checked="${selectedPrices != null and #lists.contains(selectedPrices, 'tren-500')}">
+                    <input class="form-check-input"
+                           type="radio"
+                           name="price"
+                           value="tren-500"
+                           id="price3"
+                           th:checked="${selectedPrice != null and selectedPrice == 'tren-500'}"
+                           onchange="this.form.submit()">
                     <label class="form-check-label" for="price3">Trên 500.000đ</label>
                 </div>
             </div>
@@ -47,27 +65,25 @@
             <div class="filter-group">
                 <h6>Màu sắc</h6>
 
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" name="mauIds" value="15" id="mau15"
-                           th:checked="${selectedMauIds != null and #lists.contains(selectedMauIds, 15)}">
-                    <label class="form-check-label" for="mau15">Đỏ</label>
-                </div>
-
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" name="mauIds" value="16" id="mau16"
-                           th:checked="${selectedMauIds != null and #lists.contains(selectedMauIds, 16)}">
-                    <label class="form-check-label" for="mau16">Xanh</label>
-                </div>
-
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" name="mauIds" value="17" id="mau17"
-                           th:checked="${selectedMauIds != null and #lists.contains(selectedMauIds, 17)}">
-                    <label class="form-check-label" for="mau17">Đen</label>
+                <div class="form-check" th:each="mau : ${mauSacs}">
+                    <input class="form-check-input"
+                           type="checkbox"
+                           name="mauIds"
+                           th:value="${mau.id}"
+                           th:id="'mau' + ${mau.id}"
+                           th:checked="${selectedMauIds != null and #lists.contains(selectedMauIds, mau.id)}"
+                           onchange="this.form.submit()">
+                    <label class="form-check-label"
+                           th:for="'mau' + ${mau.id}"
+                           th:text="${mau.tenMau}">
+                        Màu
+                    </label>
                 </div>
             </div>
 
-            <button type="submit" class="btn btn-dark w-100 mb-2">Áp dụng bộ lọc</button>
-            <a th:href="@{/shop/product}" class="btn btn-outline-secondary w-100">Xóa bộ lọc</a>
+            <a th:href="@{/shop/product}" class="btn btn-outline-secondary w-100">
+                Xóa bộ lọc
+            </a>
         </div>
     </form>
 </div>

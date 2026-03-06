@@ -10,7 +10,10 @@
         </button>
 
         <div class="collapse navbar-collapse" id="navbarShop">
+
+            <!-- MENU GIỮA -->
             <ul class="navbar-nav mx-auto gap-3">
+
                 <li class="nav-item">
                     <a class="nav-link"
                        th:href="@{/shop/home}"
@@ -27,6 +30,15 @@
                     </a>
                 </li>
 
+                <!-- THÊM MỤC XEM ĐƠN HÀNG -->
+                <li class="nav-item">
+                    <a class="nav-link"
+                       th:href="@{/order/my-orders}"
+                       th:classappend="${activeMenu == 'orders'} ? ' active fw-bold text-dark' : ''">
+                        Đơn hàng của tôi
+                    </a>
+                </li>
+
                 <li class="nav-item">
                     <a class="nav-link"
                        th:href="@{/shop/contact}"
@@ -34,7 +46,19 @@
                         Liên hệ
                     </a>
                 </li>
+
             </ul>
+
+            <!-- BÊN PHẢI -->
+            <div class="d-flex align-items-center gap-2">
+
+                <a class="btn btn-outline-dark"
+                   th:href="@{/cart}"
+                   th:classappend="${activeMenu == 'cart'} ? ' fw-bold' : ''">
+                    Giỏ hàng
+                </a>
+
+            </div>
         </div>
     </div>
 </nav>

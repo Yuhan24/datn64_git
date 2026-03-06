@@ -1,5 +1,7 @@
 package com.poly.shopquanao.controller.client;
 
+import com.poly.shopquanao.repository.client.KichCoClientRepository;
+import com.poly.shopquanao.repository.client.MauSacClientRepository;
 import com.poly.shopquanao.service.client.SanPhamService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
@@ -14,6 +16,18 @@ import java.util.List;
 public class ShopController {
 
     private final SanPhamService sanPhamService;
+    private final MauSacClientRepository mauSacClientRepository;
+    private final KichCoClientRepository kichCoClientRepository;
+
+    @ModelAttribute("mauSacs")
+    public List<?> loadMauSacs() {
+        return mauSacClientRepository.findByTrangThaiTrue();
+    }
+
+    @ModelAttribute("kichCos")
+    public List<?> loadKichCos() {
+        return kichCoClientRepository.findByTrangThaiTrue();
+    }
 
     @GetMapping("/home")
     public String home(Model model) {
@@ -25,16 +39,16 @@ public class ShopController {
     @GetMapping("/product")
     public String product(@RequestParam(required = false) List<Integer> mauIds,
                           @RequestParam(required = false) List<Integer> sizeIds,
-                          @RequestParam(required = false) List<String> prices,
+                          @RequestParam(required = false) String price,
                           @RequestParam(required = false) String sort,
                           Model model) {
 
-        model.addAttribute("products", sanPhamService.filterProducts(mauIds, sizeIds, prices, sort));
+        model.addAttribute("products", sanPhamService.filterProducts(mauIds, sizeIds, price, sort));
         model.addAttribute("activeMenu", "product");
 
         model.addAttribute("selectedMauIds", mauIds);
         model.addAttribute("selectedSizeIds", sizeIds);
-        model.addAttribute("selectedPrices", prices);
+        model.addAttribute("selectedPrice", price);
         model.addAttribute("selectedSort", sort);
 
         return "client/product";
@@ -51,4 +65,5 @@ public class ShopController {
         model.addAttribute("product", sanPhamService.getProductById(id));
         return "client/product-detail";
     }
+
 }

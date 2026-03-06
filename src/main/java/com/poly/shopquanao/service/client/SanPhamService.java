@@ -28,13 +28,17 @@ public class SanPhamService {
     @Transactional(readOnly = true)
     public List<ProductDTO> filterProducts(List<Integer> mauIds,
                                            List<Integer> sizeIds,
-                                           List<String> prices,
+                                           String price,
                                            String sort) {
 
-        List<SanPham> sanPhams = sanPhamRepository.filterProducts(
-                (mauIds == null || mauIds.isEmpty()) ? null : mauIds,
-                (sizeIds == null || sizeIds.isEmpty()) ? null : sizeIds,
-                (prices == null || prices.isEmpty()) ? null : prices
+        List<Integer> safeMauIds = (mauIds == null || mauIds.isEmpty()) ? null : mauIds;
+        List<Integer> safeSizeIds = (sizeIds == null) ? List.of() : sizeIds;
+
+        List<SanPham> sanPhams = sanPhamRepository.filterProductsMixed(
+                safeMauIds,
+                safeSizeIds.isEmpty() ? List.of(-1) : safeSizeIds,
+                safeSizeIds.size(),
+                (price == null || price.isBlank()) ? null : price
         );
 
         List<ProductDTO> result = sanPhams.stream().map(this::mapToDTO).toList();
@@ -61,6 +65,7 @@ public class SanPhamService {
     }
 
     private ProductDTO mapToDTO(SanPham sp) {
+
         var chiTietList = sp.getChiTietList();
 
         List<ProductDetailDTO> details = chiTietList.stream()
@@ -96,6 +101,8 @@ public class SanPhamService {
                 .map(ct -> ct.getGiaBan())
                 .orElse(BigDecimal.ZERO);
 
+
+        // map ảnh theo màu
         var imageByColor = sp.getHinhAnhList().stream()
                 .filter(ha -> ha.getMauSac() != null && ha.getDuongDanAnh() != null)
                 .collect(java.util.stream.Collectors.toMap(
@@ -103,6 +110,14 @@ public class SanPhamService {
                         SanPhamHinhAnh::getDuongDanAnh,
                         (a, b) -> a
                 ));
+
+        // ⭐ gallery ảnh
+        List<String> images = sp.getHinhAnhList().stream()
+                .map(SanPhamHinhAnh::getDuongDanAnh)
+                .filter(java.util.Objects::nonNull)
+                .distinct()
+                .toList();
+
 
         Integer firstColorId = chiTietList.stream()
                 .findFirst()
@@ -116,10 +131,7 @@ public class SanPhamService {
         }
 
         if (hinhAnh == null) {
-            hinhAnh = sp.getHinhAnhList().stream()
-                    .findFirst()
-                    .map(SanPhamHinhAnh::getDuongDanAnh)
-                    .orElse(null);
+            hinhAnh = images.stream().findFirst().orElse(null);
         }
 
         return new ProductDTO(
@@ -130,7 +142,9 @@ public class SanPhamService {
                 details,
                 mauList,
                 sizeList,
-                imageByColor
+                imageByColor,
+                images
         );
     }
+
 }

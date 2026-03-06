@@ -1,94 +1,238 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <meta charset="UTF-8">
-    <title th:text="${product.tenSanPham}">Chi tiết sản phẩm</title>
+    <title th:text="${product.tenSanPham}"></title>
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
-          rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 
     <style>
-        .color-btn.active, .size-btn.active { border: 2px solid #000 !important; }
-        .color-btn {
-            width: 32px; height: 32px; border-radius: 50%;
-            border: 1px solid #ccc; margin-right: 10px;
-            display: inline-block; cursor: pointer;
+
+        .gallery{
+            display:flex;
+            gap:14px;
         }
-        .size-btn {
-            padding: 6px 14px; border: 1px solid #ccc; margin-right: 10px;
-            cursor: pointer; background: #f5f5f5; border-radius: 8px;
-            display: inline-block;
+
+        .thumbs{
+            display:flex;
+            flex-direction:column;
+            gap:10px;
         }
-        .size-btn.disabled, .color-btn.disabled {
-            opacity: .4; cursor: not-allowed;
+
+        .thumb{
+            width:84px;
+            height:84px;
+            object-fit:cover;
+            border-radius:10px;
+            border:1px solid #ddd;
+            cursor:pointer;
         }
+
+        .thumb.active{
+            border:2px solid black;
+        }
+
+        .main-img{
+            width:100%;
+            max-height:540px;
+            object-fit:cover;
+            border-radius:12px;
+        }
+
+        .product-title{
+            font-size:30px;
+            font-weight:700;
+        }
+
+        .rating{
+            color:#f5a623;
+        }
+
+        .price{
+            font-size:32px;
+            font-weight:700;
+            color:#dc3545;
+        }
+
+        .shipping{
+            color:#198754;
+            font-weight:600;
+        }
+
+        .option-title{
+            font-size:16px;
+            font-weight:600;
+            margin-bottom:10px;
+        }
+
+        .option-group{
+            display:flex;
+            flex-wrap:wrap;
+            gap:14px;
+        }
+
+        .color-btn{
+            width:74px;
+            height:42px;
+            border:2px solid #d8d8d8;
+            border-radius:999px;
+            background:white;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            cursor:pointer;
+            padding:4px;
+        }
+
+        .color-btn.active{
+            border-color:#2f49d1;
+        }
+
+        .color-fill{
+            width:100%;
+            height:100%;
+            border-radius:999px;
+            border:1px solid #ccc;
+        }
+
+        .size-btn{
+            min-width:88px;
+            height:54px;
+            background:#d9d9d9;
+            border-radius:14px;
+            font-size:18px;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            cursor:pointer;
+        }
+
+        .size-btn.active{
+            background:black;
+            color:white;
+            font-weight:700;
+        }
+
+        .size-btn.disabled{
+            opacity:.4;
+            cursor:not-allowed;
+        }
+
     </style>
+
 </head>
+
 <body>
+
+<div th:replace="~{client/menu :: menu}"></div>
 
 <div class="container mt-5">
 
     <div class="row g-4">
 
-        <!-- Ảnh -->
-        <div class="col-md-6">
-            <img th:src="@{'/images/' + ${product.hinhAnh}}"
-                 id="mainImage"
-                 class="img-fluid rounded shadow"
-                 style="width:100%; max-height:520px; object-fit:cover;"
-                 alt="product">
-        </div>
-
-        <!-- Thông tin -->
+        <!-- gallery -->
         <div class="col-md-6">
 
-            <h2 class="fw-bold" th:text="${product.tenSanPham}"></h2>
+            <div class="gallery">
 
-            <h4 class="text-danger fw-bold mb-2" id="priceText"
-                th:text="${#numbers.formatDecimal(product.giaMacDinh,0,'COMMA',0,'POINT')} + ' VND'">
-            </h4>
+                <div class="thumbs">
 
-            <div class="mb-3">
-                <span class="text-muted">Tồn kho: </span>
-                <span class="fw-bold" id="stockText">—</span>
-            </div>
+                    <img th:each="img : ${product.images}"
+                         th:src="@{'/images/' + ${img}}"
+                         class="thumb"
+                         onclick="changeMain(this.src,this)">
 
-            <hr>
-
-            <!-- Màu -->
-            <h5 class="mb-2">Màu sắc</h5>
-            <div id="colorGroup" class="mb-3">
-                <span th:each="m : ${product.mauList}"
-                      class="color-btn"
-                      th:attr="data-color-id=${m.id}, title=${m.ten}">
-                </span>
-            </div>
-
-            <!-- Size -->
-            <h5 class="mb-2">Kích cỡ</h5>
-            <div id="sizeGroup" class="mb-3">
-                <span th:each="s : ${product.sizeList}"
-                      class="size-btn"
-                      th:text="${s.ten}"
-                      th:attr="data-size-id=${s.id}">
-                </span>
-            </div>
-
-            <hr>
-
-            <form th:action="@{/cart/add}" method="post" id="addForm">
-                <input type="hidden" name="spId" id="spHiddenId">
-
-                <div class="d-flex gap-2 align-items-center mb-3">
-                    <input type="number" name="quantity" value="1" min="1"
-                           class="form-control" style="max-width:120px;">
-                    <button class="btn btn-dark btn-lg flex-grow-1"
-                            id="addBtn" type="submit" disabled>
-                        Thêm vào giỏ hàng
-                    </button>
                 </div>
 
-                <div class="text-danger small" id="msg"></div>
+                <img th:src="@{'/images/' + ${product.hinhAnh}}"
+                     id="mainImage"
+                     class="main-img">
+
+            </div>
+
+        </div>
+
+
+        <!-- info -->
+        <div class="col-md-6">
+
+            <h1 class="product-title" th:text="${product.tenSanPham}"></h1>
+
+            <div class="rating mb-2">
+                ★★★★★ (5.0)
+            </div>
+
+            <div class="price mb-2"
+                 th:text="${#numbers.formatDecimal(product.giaMacDinh,0,'COMMA',0,'POINT')} + ' VND'">
+            </div>
+
+            <div class="shipping mb-3">
+                🚚 Freeship toàn quốc
+            </div>
+
+            <div class="mb-3">
+                Tồn kho: <b id="stockText">—</b>
+            </div>
+
+
+            <div class="option-title">
+                Màu sắc: <span id="selectedColorText">—</span>
+            </div>
+
+            <div id="colorGroup" class="option-group mb-4">
+
+<span th:each="m : ${product.mauList}"
+      class="color-btn"
+      th:attr="data-color-id=${m.id}, data-color-name=${m.ten}, title=${m.ten}">
+
+<span class="color-fill"></span>
+
+</span>
+
+            </div>
+
+
+            <div class="option-title">
+                Kích thước: <span id="selectedSizeText">—</span>
+            </div>
+
+            <div id="sizeGroup" class="option-group mb-4">
+
+<span th:each="s : ${product.sizeList}"
+      class="size-btn"
+      th:text="${s.ten}"
+      th:attr="data-size-id=${s.id}, data-size-name=${s.ten}">
+</span>
+
+            </div>
+
+
+            <form th:action="@{/cart/add}" method="post" id="addForm">
+
+                <input type="hidden" name="spId" id="spHiddenId">
+
+                <div class="d-flex gap-2">
+
+                    <input type="number"
+                           name="quantity"
+                           value="1"
+                           min="1"
+                           class="form-control"
+                           style="max-width:120px">
+
+                    <button class="btn btn-dark flex-grow-1"
+                            id="addBtn"
+                            disabled>
+
+                        Thêm vào giỏ hàng
+
+                    </button>
+
+                </div>
+
+                <div id="msg" class="text-danger mt-2"></div>
+
             </form>
 
         </div>
@@ -97,125 +241,222 @@
 
 </div>
 
+
 <script th:inline="javascript">
-    /*<![CDATA[*/
-    const product = /*[[${product}]]*/ null;
 
-    const priceText = document.getElementById("priceText");
-    const stockText = document.getElementById("stockText");
-    const imgEl = document.getElementById("mainImage");
-    const hiddenId = document.getElementById("spHiddenId");
-    const addBtn = document.getElementById("addBtn");
-    const msg = document.getElementById("msg");
+    const product = [[${product}]];
 
-    let selectedColor = null;
-    let selectedSize = null;
+    let selectedColor=null;
+    let selectedSize=null;
 
-    function formatVND(n) {
-        return new Intl.NumberFormat('vi-VN').format(n || 0) + " VND";
+    const stockText=document.getElementById("stockText");
+    const hiddenId=document.getElementById("spHiddenId");
+    const addBtn=document.getElementById("addBtn");
+
+    const selectedColorText=document.getElementById("selectedColorText");
+    const selectedSizeText=document.getElementById("selectedSizeText");
+
+
+    function changeMain(src,thumb){
+
+        document.getElementById("mainImage").src=src;
+
+        document.querySelectorAll(".thumb")
+            .forEach(t=>t.classList.remove("active"));
+
+        thumb.classList.add("active");
+
     }
 
-    function clearMsg(){ msg.innerText = ""; }
-    function setMsg(t){ msg.innerText = t || ""; }
 
-    function setActive(selector, attrName, value) {
-        document.querySelectorAll(selector).forEach(el => el.classList.remove("active"));
-        const el = document.querySelector(`${selector}[${attrName}='${value}']`);
-        if (el) el.classList.add("active");
+    function getColorCode(colorName){
+
+        const name=colorName
+            .toLowerCase()
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g,"")
+            .replace(/đ/g,"d")
+            .trim();
+
+        const map={
+            "do":"#e53935",
+            "den":"#111111",
+            "trang":"#ffffff",
+            "xam":"#9e9e9e",
+            "ghi":"#9e9e9e",
+            "bac":"#c0c0c0",
+            "xanh":"#4caf50",
+            "xanh la":"#43a047",
+            "xanh duong":"#1e88e5",
+            "xanh navy":"#1f2a44",
+            "xanh da troi":"#81d4fa",
+            "vang":"#fdd835",
+            "cam":"#fb8c00",
+            "hong":"#ec407a",
+            "tim":"#8e24aa",
+            "nau":"#8d6e63",
+            "be":"#d7ccc8"
+        };
+
+        return map[name] || "#ccc";
+
     }
 
-    function findVariant(colorId, sizeId) {
-        const list = (product && product.chiTietList) ? product.chiTietList : [];
-        return list.find(v =>
-            Number(v.mauSacId) === Number(colorId) &&
-            Number(v.kichCoId) === Number(sizeId)
+
+    function findVariant(color,size){
+
+        return product.chiTietList.find(v=>
+
+            v.mauSacId==color &&
+            v.kichCoId==size
+
         );
+
     }
 
-    // (tạm thời) đổi ảnh: nếu bạn chưa trả về map ảnh theo màu, thì giữ ảnh mặc định
-    function tryChangeImageByColor(colorId) {
-        if (!product || !product.imageByColor) return;
 
-        const file =
-            product.imageByColor[colorId] ||
-            product.imageByColor[String(colorId)];
+    function updateUI(){
 
-        if (file) {
-            imgEl.src = "/images/" + file;
-        }
-    }
+        if(!selectedColor || !selectedSize){
 
-    function updateUI() {
-        clearMsg();
-
-        if (!selectedColor || !selectedSize) {
-            stockText.innerText = "—";
-            hiddenId.value = "";
-            addBtn.disabled = true;
+            stockText.innerText="—";
+            addBtn.disabled=true;
             return;
+
         }
 
-        const v = findVariant(selectedColor, selectedSize);
+        const v=findVariant(selectedColor,selectedSize);
 
-        if (!v) {
-            priceText.innerText = formatVND(product.giaMacDinh);
-            stockText.innerText = "0";
-            hiddenId.value = "";
-            addBtn.disabled = true;
-            setMsg("Không có biến thể này.");
+        if(!v){
+
+            stockText.innerText="0";
+            addBtn.disabled=true;
             return;
+
         }
 
-        priceText.innerText = formatVND(v.giaBan);
-        stockText.innerText = (v.soLuong ?? 0);
-        hiddenId.value = v.id;
-        addBtn.disabled = (v.soLuong ?? 0) <= 0;
+        stockText.innerText=v.soLuong;
+        hiddenId.value=v.id;
 
-        if ((v.soLuong ?? 0) <= 0) setMsg("Biến thể đã hết hàng.");
+        addBtn.disabled=v.soLuong<=0;
+
     }
 
-    document.addEventListener("DOMContentLoaded", function () {
-        if (!product) return;
 
-        // set mặc định: lấy biến thể đầu tiên nếu có
-        const first = (product.chiTietList && product.chiTietList.length > 0) ? product.chiTietList[0] : null;
-        if (first) {
-            selectedColor = first.mauSacId;
-            selectedSize = first.kichCoId;
+    document.addEventListener("DOMContentLoaded",()=>{
 
-            setActive(".color-btn", "data-color-id", selectedColor);
-            setActive(".size-btn", "data-size-id", selectedSize);
-            tryChangeImageByColor(selectedColor);
+        document.querySelectorAll(".color-btn").forEach(btn=>{
+
+            const name=btn.dataset.colorName;
+
+            const box=btn.querySelector(".color-fill");
+
+            box.style.background=getColorCode(name);
+
+        });
+
+
+        const first=product.chiTietList[0];
+
+        if(first){
+
+            selectedColor=first.mauSacId;
+            selectedSize=first.kichCoId;
+
+            setActiveColor(selectedColor);
+            setActiveSize(selectedSize);
+
+            updateSelectedTexts();
+
+            updateUI();
+
         }
 
-        updateUI();
-
-        document.querySelectorAll(".color-btn").forEach(btn => {
-            btn.addEventListener("click", function () {
-                selectedColor = this.getAttribute("data-color-id");
-                setActive(".color-btn", "data-color-id", selectedColor);
-                tryChangeImageByColor(selectedColor);
-                updateUI();
-            });
-        });
-
-        document.querySelectorAll(".size-btn").forEach(btn => {
-            btn.addEventListener("click", function () {
-                selectedSize = this.getAttribute("data-size-id");
-                setActive(".size-btn", "data-size-id", selectedSize);
-                updateUI();
-            });
-        });
-
-        // chặn submit nếu chưa có spId
-        document.getElementById("addForm").addEventListener("submit", function (e) {
-            if (!hiddenId.value) {
-                e.preventDefault();
-                setMsg("Vui lòng chọn màu và size hợp lệ.");
-            }
-        });
     });
-    /*]]>*/
+
+
+    function setActiveColor(id){
+
+        document.querySelectorAll(".color-btn")
+            .forEach(b=>{
+
+                b.classList.remove("active");
+
+                if(b.dataset.colorId==id){
+
+                    b.classList.add("active");
+
+                }
+
+            });
+
+    }
+
+
+    function setActiveSize(id){
+
+        document.querySelectorAll(".size-btn")
+            .forEach(b=>{
+
+                b.classList.remove("active");
+
+                if(b.dataset.sizeId==id){
+
+                    b.classList.add("active");
+
+                }
+
+            });
+
+    }
+
+
+    function updateSelectedTexts(){
+
+        const c=document.querySelector(".color-btn.active");
+        const s=document.querySelector(".size-btn.active");
+
+        selectedColorText.innerText=c?c.dataset.colorName:"—";
+        selectedSizeText.innerText=s?s.dataset.sizeName:"—";
+
+    }
+
+
+    document.querySelectorAll(".color-btn").forEach(btn=>{
+
+        btn.onclick=function(){
+
+            selectedColor=this.dataset.colorId;
+
+            setActiveColor(selectedColor);
+
+            updateSelectedTexts();
+
+            updateUI();
+
+        }
+
+    });
+
+
+    document.querySelectorAll(".size-btn").forEach(btn=>{
+
+        btn.onclick=function(){
+
+            if(this.classList.contains("disabled")) return;
+
+            selectedSize=this.dataset.sizeId;
+
+            setActiveSize(selectedSize);
+
+            updateSelectedTexts();
+
+            updateUI();
+
+        }
+
+    });
+
 </script>
 
 </body>

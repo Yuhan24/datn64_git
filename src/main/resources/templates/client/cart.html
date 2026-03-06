@@ -4,133 +4,273 @@
     <meta charset="UTF-8">
     <title>Giỏ hàng</title>
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
-          rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 
     <style>
-        body { background-color: #f5f5f5; }
+        body {
+            background-color: #f5f5f5;
+        }
+
         .cart-box {
             border-radius: 15px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
         }
+
         .qty-input {
-            width: 70px;
+            width: 80px;
             text-align: center;
         }
+
         .total-price {
             font-size: 24px;
             font-weight: bold;
             color: #dc3545;
         }
+
+        .selected-total {
+            font-size: 20px;
+            font-weight: bold;
+            color: #198754;
+        }
+
+        .product-cell strong {
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .action-group {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .cart-summary {
+            background: #fff;
+            border-radius: 12px;
+            padding: 16px;
+            border: 1px solid #e9ecef;
+            min-width: 320px;
+        }
+
+        .check-col {
+            width: 50px;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
 
-<nav class="navbar navbar-dark bg-dark">
-    <div class="container">
-        <a class="navbar-brand" th:href="@{/shop/home}">🛍 Shop Quần Áo</a>
-    </div>
-</nav>
+<div th:replace="~{client/menu :: menu}"></div>
 
-<div class="container mt-5">
-
+<div class="container mt-5 mb-5">
     <div class="card cart-box p-4">
 
         <h3 class="mb-4">Giỏ hàng của bạn</h3>
 
         <div th:if="${#lists.isEmpty(cartItems)}" class="text-center py-5">
             <h5>🛒 Giỏ hàng đang trống</h5>
-            <a class="btn btn-primary mt-3"
-               th:href="@{/shop/home}">Mua sắm ngay</a>
+            <a class="btn btn-primary mt-3" th:href="@{/shop/home}">
+                Mua sắm ngay
+            </a>
         </div>
 
         <div th:if="${!#lists.isEmpty(cartItems)}">
 
+            <!-- form gửi danh sách item đã chọn sang trang checkout -->
+            <form th:action="@{/order/checkout-selected}" method="post" id="checkoutSelectedForm">
+                <div id="selectedHiddenInputs"></div>
+            </form>
+
+            <!-- form thanh toán tất cả -->
+            <form th:action="@{/order/checkout}" method="post" id="checkoutAllForm"></form>
+
             <table class="table align-middle">
                 <thead class="table-dark">
                 <tr>
+                    <th class="check-col">
+                        <input type="checkbox" id="checkAll">
+                    </th>
                     <th>Sản phẩm</th>
                     <th>Giá</th>
                     <th>Số lượng</th>
                     <th>Tổng</th>
-                    <th></th>
+                    <th style="width: 240px;">Thao tác</th>
                 </tr>
                 </thead>
 
                 <tbody>
                 <tr th:each="item : ${cartItems}">
-
-                    <td>
-                        <strong th:text="${item.sanPhamChiTiet.sanPham.tenSanPham}"></strong><br>
-                        Size: <span th:text="${item.sanPhamChiTiet.kichCo.tenKichCo}"></span> |
-                        Màu: <span th:text="${item.sanPhamChiTiet.mauSac.tenMau}"></span>
+                    <td class="check-col">
+                        <input type="checkbox"
+                               class="item-check"
+                               th:value="${item.id}"
+                               th:attr="data-price=${item.sanPhamChiTiet.giaBan},data-qty=${item.soLuong}">
                     </td>
 
-                    <td th:text="${#numbers.formatDecimal(item.sanPhamChiTiet.giaBan,0,'COMMA',0,'POINT')} + ' VND'">
+                    <td class="product-cell">
+                        <strong th:text="${item.sanPhamChiTiet.sanPham.tenSanPham}"></strong>
+                        <span>Size: <span th:text="${item.sanPhamChiTiet.kichCo.tenKichCo}"></span></span>
+                        <span> | </span>
+                        <span>Màu: <span th:text="${item.sanPhamChiTiet.mauSac.tenMau}"></span></span>
                     </td>
 
-                    <!-- Update Quantity -->
+                    <td th:text="${#numbers.formatDecimal(item.sanPhamChiTiet.giaBan, 0, 'COMMA', 0, 'POINT')} + ' VND'"></td>
+
                     <td>
-                        <form th:action="@{/cart/update}" method="post" class="d-flex">
+                        <form th:action="@{/cart/update}" method="post" class="d-flex align-items-center gap-2 m-0">
                             <input type="hidden" name="id" th:value="${item.id}"/>
 
                             <input type="number"
                                    name="quantity"
                                    th:value="${item.soLuong}"
                                    min="1"
-                                   class="form-control qty-input me-2"/>
+                                   class="form-control qty-input"/>
 
-                            <button type="submit"
-                                    class="btn btn-outline-primary btn-sm">
+                            <button type="submit" class="btn btn-outline-primary btn-sm">
                                 Cập nhật
                             </button>
                         </form>
                     </td>
 
                     <td class="text-danger fw-bold"
-                        th:text="${#numbers.formatDecimal(item.soLuong * item.sanPhamChiTiet.giaBan,0,'COMMA',0,'POINT')} + ' VND'">
+                        th:text="${#numbers.formatDecimal(item.soLuong * item.sanPhamChiTiet.giaBan, 0, 'COMMA', 0, 'POINT')} + ' VND'">
                     </td>
 
-                    <!-- Remove -->
                     <td>
-                        <form th:action="@{/cart/remove}" method="post">
-                            <input type="hidden" name="id" th:value="${item.id}"/>
-                            <button class="btn btn-outline-danger btn-sm">
-                                Xóa
-                            </button>
-                        </form>
-                    </td>
+                        <div class="action-group">
+                            <form th:action="@{/cart/remove}" method="post" class="m-0">
+                                <input type="hidden" name="id" th:value="${item.id}"/>
+                                <button type="submit" class="btn btn-outline-danger btn-sm">
+                                    Xóa
+                                </button>
+                            </form>
 
+                            <form th:action="@{/order/checkout-one}" method="post" class="m-0">
+                                <input type="hidden" name="cartItemId" th:value="${item.id}"/>
+                                <button type="submit" class="btn btn-outline-success btn-sm">
+                                    Thanh toán riêng
+                                </button>
+                            </form>
+                        </div>
+                    </td>
                 </tr>
                 </tbody>
             </table>
 
-            <div class="d-flex justify-content-between mt-4">
-
-                <a class="btn btn-secondary"
-                   th:href="@{/shop/home}">
+            <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mt-4">
+                <a class="btn btn-secondary" th:href="@{/shop/home}">
                     ← Tiếp tục mua hàng
                 </a>
 
-                <div>
-                    <span class="me-3">Tổng thanh toán:</span>
-                    <span class="total-price"
-                          th:text="${#numbers.formatDecimal(total,0,'COMMA',0,'POINT')} + ' VND'">
-                    </span>
+                <div class="cart-summary text-end">
+                    <div class="mb-2">
+                        <span class="me-2">Tổng tất cả:</span>
+                        <span class="total-price"
+                              th:text="${#numbers.formatDecimal(total, 0, 'COMMA', 0, 'POINT')} + ' VND'"></span>
+                    </div>
 
-                    <a href="#"
-                       class="btn btn-success btn-lg ms-3">
-                        Thanh toán
-                    </a>
+                    <div class="mb-3">
+                        <span class="me-2">Tổng đã chọn:</span>
+                        <span class="selected-total" id="selectedTotal">0 VND</span>
+                    </div>
+
+                    <div class="d-flex gap-2 justify-content-end flex-wrap">
+                        <button type="submit" form="checkoutAllForm" class="btn btn-success btn-lg">
+                            Thanh toán tất cả
+                        </button>
+
+                        <button type="button" id="checkoutSelectedBtn" class="btn btn-dark btn-lg">
+                            Thanh toán đã chọn
+                        </button>
+                    </div>
                 </div>
-
             </div>
 
         </div>
 
     </div>
-
 </div>
+
+<script>
+    const checkAll = document.getElementById("checkAll");
+    const itemChecks = document.querySelectorAll(".item-check");
+    const selectedTotalEl = document.getElementById("selectedTotal");
+    const selectedHiddenInputs = document.getElementById("selectedHiddenInputs");
+    const checkoutSelectedBtn = document.getElementById("checkoutSelectedBtn");
+    const checkoutSelectedForm = document.getElementById("checkoutSelectedForm");
+
+    function formatVND(number) {
+        return new Intl.NumberFormat('vi-VN').format(number) + ' VND';
+    }
+
+    function getCheckedItems() {
+        return [...itemChecks].filter(item => item.checked);
+    }
+
+    function updateSelectedTotal() {
+        let total = 0;
+
+        getCheckedItems().forEach(item => {
+            const price = Number(item.dataset.price || 0);
+            const qty = Number(item.dataset.qty || 0);
+            total += price * qty;
+        });
+
+        selectedTotalEl.textContent = formatVND(total);
+    }
+
+    function syncCheckAllState() {
+        const allChecked = itemChecks.length > 0 && [...itemChecks].every(item => item.checked);
+        checkAll.checked = allChecked;
+    }
+
+    function buildSelectedHiddenInputs() {
+        selectedHiddenInputs.innerHTML = "";
+
+        getCheckedItems().forEach(item => {
+            const input = document.createElement("input");
+            input.type = "hidden";
+            input.name = "selectedIds";
+            input.value = item.value;
+            selectedHiddenInputs.appendChild(input);
+        });
+    }
+
+    if (checkAll) {
+        checkAll.addEventListener("change", function () {
+            itemChecks.forEach(item => {
+                item.checked = this.checked;
+            });
+            updateSelectedTotal();
+            buildSelectedHiddenInputs();
+        });
+    }
+
+    itemChecks.forEach(item => {
+        item.addEventListener("change", function () {
+            syncCheckAllState();
+            updateSelectedTotal();
+            buildSelectedHiddenInputs();
+        });
+    });
+
+    if (checkoutSelectedBtn) {
+        checkoutSelectedBtn.addEventListener("click", function () {
+            buildSelectedHiddenInputs();
+
+            if (getCheckedItems().length === 0) {
+                alert("Vui lòng chọn ít nhất 1 sản phẩm để thanh toán.");
+                return;
+            }
+
+            checkoutSelectedForm.submit();
+        });
+    }
+
+    updateSelectedTotal();
+    buildSelectedHiddenInputs();
+    syncCheckAllState();
+</script>
 
 </body>
 </html>

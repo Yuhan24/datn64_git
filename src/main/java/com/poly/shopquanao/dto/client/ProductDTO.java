@@ -8,15 +8,17 @@ public class ProductDTO {
 
     private Integer id;
     private String tenSanPham;
-    private String hinhAnh;                 // ảnh mặc định (hiển thị ban đầu)
+    private String hinhAnh;
     private BigDecimal giaMacDinh;
 
     private List<ProductDetailDTO> chiTietList;
     private List<AttributeDTO> mauList;
     private List<AttributeDTO> sizeList;
 
-    // ✅ mới: ảnh theo màu (key = mauSacId, value = filename)
     private Map<Integer, String> imageByColor;
+
+    // ⭐ thêm gallery
+    private List<String> images;
 
     public ProductDTO(Integer id,
                       String tenSanPham,
@@ -25,7 +27,8 @@ public class ProductDTO {
                       List<ProductDetailDTO> chiTietList,
                       List<AttributeDTO> mauList,
                       List<AttributeDTO> sizeList,
-                      Map<Integer, String> imageByColor) {
+                      Map<Integer, String> imageByColor,
+                      List<String> images) {
 
         this.id = id;
         this.tenSanPham = tenSanPham;
@@ -35,6 +38,7 @@ public class ProductDTO {
         this.mauList = mauList;
         this.sizeList = sizeList;
         this.imageByColor = imageByColor;
+        this.images = images;
     }
 
     public Integer getId() { return id; }
@@ -47,4 +51,6 @@ public class ProductDTO {
     public List<AttributeDTO> getSizeList() { return sizeList; }
 
     public Map<Integer, String> getImageByColor() { return imageByColor; }
+
+    public List<String> getImages() { return images; }
 }

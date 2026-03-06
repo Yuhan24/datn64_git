@@ -21,25 +21,52 @@ public interface SanPhamRepository extends JpaRepository<SanPham, Integer> {
     List<SanPham> findAllWithDetails();
 
     @Query("""
-        select distinct sp from SanPham sp
+        select distinct sp
+        from SanPham sp
         left join fetch sp.chiTietList ct
         left join fetch ct.mauSac
         left join fetch ct.kichCo
         left join fetch sp.hinhAnhList ha
         left join fetch ha.mauSac
         where sp.trangThai = true
+
           and (
-                (:mauIds is null or ct.mauSac.id in :mauIds)
-            and (:sizeIds is null or ct.kichCo.id in :sizeIds)
-            and (
-                    :prices is null
-                 or ('duoi-300' in :prices and ct.giaBan < 300000)
-                 or ('300-500' in :prices and ct.giaBan between 300000 and 500000)
-                 or ('tren-500' in :prices and ct.giaBan > 500000)
+                :price is null
+                or exists (
+                    select 1
+                    from SanPhamChiTiet ctPrice
+                    where ctPrice.sanPham = sp
+                      and (
+                            (:price = 'duoi-300' and ctPrice.giaBan < 300000)
+                         or (:price = '300-500' and ctPrice.giaBan between 300000 and 500000)
+                         or (:price = 'tren-500' and ctPrice.giaBan > 500000)
+                      )
+                )
+          )
+
+          and (
+                :mauIds is null
+                or exists (
+                    select 1
+                    from SanPhamChiTiet ctMau
+                    where ctMau.sanPham = sp
+                      and ctMau.mauSac.id in :mauIds
+                )
+          )
+
+          and (
+                :sizeCount = 0
+                or sp.id in (
+                    select ctSize.sanPham.id
+                    from SanPhamChiTiet ctSize
+                    where ctSize.kichCo.id in :sizeIds
+                    group by ctSize.sanPham.id
+                    having count(distinct ctSize.kichCo.id) = :sizeCount
                 )
           )
     """)
-    List<SanPham> filterProducts(@Param("mauIds") List<Integer> mauIds,
-                                 @Param("sizeIds") List<Integer> sizeIds,
-                                 @Param("prices") List<String> prices);
+    List<SanPham> filterProductsMixed(@Param("mauIds") List<Integer> mauIds,
+                                      @Param("sizeIds") List<Integer> sizeIds,
+                                      @Param("sizeCount") long sizeCount,
+                                      @Param("price") String price);
 }

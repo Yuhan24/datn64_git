@@ -58,6 +58,7 @@ public class CartController {
 
         model.addAttribute("cartItems", cartItems);
         model.addAttribute("total", total);
+        model.addAttribute("activeMenu", "cart");
 
         return "client/cart";
     }
@@ -78,4 +79,5 @@ public class CartController {
         cartService.updateQuantity(khId, cartItemId, quantity);
         return "redirect:/cart";
     }
+
 }
