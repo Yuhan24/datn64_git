@@ -33,4 +33,12 @@ public class DonHangChiTiet {
 
     @Column(name = "gia_tai_thoi_diem", precision = 18, scale = 2, nullable = false)
     private BigDecimal giaTaiThoiDiem;
+
+    @Transient
+    public BigDecimal getThanhTien() {
+        if (giaTaiThoiDiem == null || soLuong == null) {
+            return BigDecimal.ZERO;
+        }
+        return giaTaiThoiDiem.multiply(BigDecimal.valueOf(soLuong));
+    }
 }

@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<section th:fragment="content">
+
+    <div class="pos-page">
+
+        <div th:if="${success}" class="alert success" th:text="${success}"></div>
+        <div th:if="${error}" class="alert error" th:text="${error}"></div>
+
+        <!-- Thanh trên -->
+        <div class="pos-topbar">
+            <div class="pos-search-box">
+                <input type="text" class="input pos-search-input" placeholder="F3) Tìm kiếm sản phẩm">
+            </div>
+
+            <div class="pos-top-actions">
+                <form th:action="@{/admin/pos/create-order}" method="post" style="display:inline;">
+                    <input type="hidden" th:if="${_csrf != null}"
+                           th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                    <button type="submit" class="btn danger">Tạo hóa đơn mới</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="pos-layout">
+
+            <!-- Cột trái -->
+            <div class="pos-left">
+
+                <!-- Hóa đơn chờ -->
+                <div class="card">
+                    <h3 class="section-title">Hóa đơn chờ</h3>
+
+                    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                        <a th:each="hd : ${hoaDonCho}"
+                           th:href="@{/admin/pos(donHangId=${hd.id})}"
+                           class="btn small"
+                           th:classappend="${selectedDonHangId != null and selectedDonHangId == hd.id} ? ' primary' : ''"
+                           th:text="${hd.maDonHang}">
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Giỏ hàng -->
+                <div class="card pos-cart-card">
+                    <h3 class="section-title">Giỏ hàng</h3>
+
+                    <div th:if="${gioHang == null or #lists.isEmpty(gioHang)}" class="empty-cart">
+                        Vui lòng tạo mới hoặc chọn một hóa đơn
+                    </div>
+
+                    <div th:if="${gioHang != null and !#lists.isEmpty(gioHang)}">
+                        <table class="table">
+                            <thead>
+                            <tr>
+                                <th>Tên SP</th>
+                                <th>Màu</th>
+                                <th>Size</th>
+                                <th>SL</th>
+                                <th>Giá</th>
+                                <th>Thành tiền</th>
+                                <th>Xóa</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="ct : ${gioHang}">
+                                <td th:text="${ct.sanPhamChiTiet.sanPham.tenSanPham}"></td>
+                                <td th:text="${ct.sanPhamChiTiet.mauSac.tenMau}"></td>
+                                <td th:text="${ct.sanPhamChiTiet.kichCo.tenKichCo}"></td>
+                                <td th:text="${ct.soLuong}"></td>
+                                <td th:text="${#numbers.formatDecimal(ct.giaTaiThoiDiem, 0, 'COMMA', 0, 'POINT')} + ' đ'"></td>
+                                <td th:text="${#numbers.formatDecimal(ct.thanhTien, 0, 'COMMA', 0, 'POINT')} + ' đ'"></td>                                <td>
+                                    <form th:action="@{'/admin/pos/remove-item/' + ${ct.id}}" method="post" style="display:inline;">
+                                        <input type="hidden" th:if="${_csrf != null}"
+                                               th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                        <button type="submit" class="btn small danger">Xóa</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Danh sách sản phẩm -->
+                <div class="card pos-product-card">
+                    <h3 class="section-title">Danh sách sản phẩm</h3>
+
+                    <div class="pos-filter-grid">
+                        <div>
+                            <label>Giá tối thiểu (VND)</label>
+                            <input type="number" class="input" placeholder="Nhập giá tối thiểu">
+                        </div>
+
+                        <div>
+                            <label>Giá tối đa (VND)</label>
+                            <input type="number" class="input" placeholder="Nhập giá tối đa">
+                        </div>
+
+                        <div>
+                            <label>Màu sắc</label>
+                            <select class="input">
+                                <option>Chọn màu sắc</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label>Kích thước</label>
+                            <select class="input">
+                                <option>Chọn kích thước</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="table-wrap">
+                        <table class="table pos-table">
+                            <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Tên sản phẩm</th>
+                                <th>Màu sắc</th>
+                                <th>Kích thước</th>
+                                <th>Số lượng</th>
+                                <th>Giá bán</th>
+                                <th>Hành động</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="spct : ${listSpct}">
+                                <td th:text="${spct.id}">1</td>
+                                <td th:text="${spct.sanPham != null ? spct.sanPham.tenSanPham : '-'}">Áo thun basic</td>
+                                <td th:text="${spct.mauSac != null ? spct.mauSac.tenMau : '-'}">Đen</td>
+                                <td th:text="${spct.kichCo != null ? spct.kichCo.tenKichCo : '-'}">M</td>
+                                <td th:text="${spct.soLuong}">20</td>
+                                <td th:text="${#numbers.formatDecimal(spct.giaBan, 0, 'COMMA', 0, 'POINT')} + ' đ'">199.000 đ</td>
+                                <td>
+                                    <form th:action="@{/admin/pos/add-product}" method="post" style="display:inline;">
+                                        <input type="hidden" name="donHangId" th:value="${selectedDonHangId}">
+                                        <input type="hidden" name="spctId" th:value="${spct.id}">
+                                        <input type="hidden" th:if="${_csrf != null}"
+                                               th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                        <button class="btn small success"
+                                                type="submit"
+                                                th:disabled="${selectedDonHangId == null}">
+                                            + Thêm
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+
+                            <tr th:if="${listSpct == null or #lists.isEmpty(listSpct)}">
+                                <td colspan="7" style="text-align:center;">Chưa có sản phẩm chi tiết</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Cột phải -->
+            <div class="pos-right">
+                <div class="card pos-payment-card">
+
+                    <div class="right-block">
+                        <label>Khách hàng</label>
+
+                        <form th:action="@{/admin/pos/find-customer}" method="get" class="customer-search">
+                            <input type="hidden" name="donHangId" th:value="${selectedDonHangId}">
+                            <input type="text" class="input" name="keyword"
+                                   placeholder="Nhập số điện thoại khách hàng">
+                            <button class="btn success" type="submit">Tìm</button>
+                        </form>
+
+                        <div class="customer-box" th:if="${selectedCustomer != null}">
+                            <div><b th:text="${selectedCustomer.hoTen}">Tên khách</b></div>
+                            <div th:text="${selectedCustomer.soDienThoai}">SĐT</div>
+                        </div>
+
+                        <form th:action="@{/admin/pos/select-guest}" method="post" th:if="${selectedCustomer == null}">
+                            <input type="hidden" name="donHangId" th:value="${selectedDonHangId}">
+                            <input type="hidden" th:if="${_csrf != null}"
+                                   th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                            <button class="btn" type="submit">Chọn khách vãng lai</button>
+                        </form>
+                    </div>
+
+                    <div class="right-block">
+                        <h3 class="section-title">Thanh toán</h3>
+                        <div class="money-line">
+                            <span>Tổng tiền:</span>
+                            <strong th:text="${donHang != null && donHang.tongTien != null
+                                ? #numbers.formatDecimal(donHang.tongTien, 0, 'COMMA', 0, 'POINT') + ' đ'
+                                : '0 VND'}">
+                                0 VND
+                            </strong>
+                        </div>
+                    </div>
+
+                    <div class="right-block">
+                        <select class="input">
+                            <option>Chọn voucher</option>
+                        </select>
+                    </div>
+
+                    <div class="right-block total-pay"
+                         th:text="${donHang != null && donHang.tongTien != null
+                         ? 'KHÁCH PHẢI TRẢ: ' + #numbers.formatDecimal(donHang.tongTien, 0, 'COMMA', 0, 'POINT') + ' đ'
+                         : 'KHÁCH PHẢI TRẢ: 0 VND'}">
+                        KHÁCH PHẢI TRẢ: 0 VND
+                    </div>
+
+                    <form th:action="@{/admin/pos/pay}" method="post">
+                        <div class="right-block">
+                            <label>Phương thức thanh toán:</label>
+                            <select class="input" name="phuongThucThanhToan">
+                                <option value="TIEN_MAT">Tiền mặt</option>
+                                <option value="CHUYEN_KHOAN">Chuyển khoản</option>
+                            </select>
+                        </div>
+
+                        <div class="right-block">
+                            <label>Khách thanh toán:</label>
+                            <input type="number"
+                                   id="tienKhachDua"
+                                   name="tienKhachDua"
+                                   oninput="tinhTienThua()"
+                                   class="input">
+                        </div>
+
+                        <div class="right-block money-line">
+                            <span>Tiền thừa trả khách:</span>
+                            <strong id="tienThua">0 VND</strong>
+                        </div>
+
+                        <input type="hidden" name="donHangId" th:value="${selectedDonHangId}">
+                        <input type="hidden" th:if="${_csrf != null}"
+                               th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
+                        <button class="btn danger pos-pay-btn"
+                                type="submit"
+                                th:disabled="${selectedDonHangId == null}">
+                            Thanh toán
+                        </button>
+                    </form>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</section>
+<script>
+    function tinhTienThua(){
+        let tong = parseFloat(document.getElementById("tongTien").value) || 0;
+        let dua = parseFloat(document.getElementById("tienKhachDua").value) || 0;
+
+        let thua = dua - tong;
+
+        if(thua < 0){
+            document.getElementById("tienThua").innerText = "0 VND";
+        }else{
+            document.getElementById("tienThua").innerText =
+                thua.toLocaleString('vi-VN') + " VND";
+        }
+    }
+</script>
+</body>
+</html>

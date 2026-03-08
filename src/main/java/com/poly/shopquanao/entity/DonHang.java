@@ -25,13 +25,11 @@ public class DonHang {
     @Column(name = "ma_don_hang", unique = true, nullable = false, length = 50)
     private String maDonHang;
 
-    // giữ nguyên entity KhachHang theo yêu cầu bạn
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "khach_hang_id")
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private KhachHang khachHang;
 
-    // giữ nguyên entity NhanVien theo yêu cầu bạn
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "nhan_vien_id")
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
@@ -40,16 +38,15 @@ public class DonHang {
     @Column(name = "tong_tien", precision = 18, scale = 2)
     private BigDecimal tongTien;
 
-    /**
-     * Vì bạn CHƯA có bảng trang_thai_don_hang,
-     * nên giữ trạng thái dạng INT đúng theo cột trang_thai_id.
-     */
     @Builder.Default
     @Column(name = "trang_thai_id")
     private Integer trangThaiId = 1;
 
     @Column(name = "ngay_tao")
     private LocalDateTime ngayTao;
+
+    @Column(name = "ten_nguoi_nhan", length = 100)
+    private String tenNguoiNhan;
 
     @Column(name = "dia_chi_giao_hang", length = 500)
     private String diaChiGiaoHang;
@@ -59,6 +56,17 @@ public class DonHang {
 
     @Column(name = "ghi_chu", length = 500)
     private String ghiChu;
+
+
+    @Column(name = "loai_don")//1 = OFFLINE / 0 = tại quầy
+    private Integer loaiDon;
+
+    @Column(name = "phuong_thuc_thanh_toan", length = 50)
+    private String phuongThucThanhToan;
+
+    @Builder.Default
+    @Column(name = "trang_thai_thanh_toan", length = 50)
+    private String trangThaiThanhToan = "CHUA_THANH_TOAN";
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "khuyen_mai_id")
@@ -78,5 +86,8 @@ public class DonHang {
         if (ngayTao == null) ngayTao = LocalDateTime.now();
         if (tienGiam == null) tienGiam = BigDecimal.ZERO;
         if (trangThaiId == null) trangThaiId = 1;
+        if (trangThaiThanhToan == null || trangThaiThanhToan.isBlank()) {
+            trangThaiThanhToan = "CHUA_THANH_TOAN";
+        }
     }
 }
