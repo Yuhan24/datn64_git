@@ -1,14 +1,19 @@
 package com.poly.shopquanao.controller.client;
 
+import com.poly.shopquanao.repository.KhachHangLoginRepository;
+import com.poly.shopquanao.repository.client.GioHangChiTietRepository;
 import com.poly.shopquanao.repository.client.KichCoClientRepository;
 import com.poly.shopquanao.repository.client.MauSacClientRepository;
 import com.poly.shopquanao.service.client.SanPhamService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Controller
 @RequestMapping("/shop")
@@ -18,6 +23,8 @@ public class ShopController {
     private final SanPhamService sanPhamService;
     private final MauSacClientRepository mauSacClientRepository;
     private final KichCoClientRepository kichCoClientRepository;
+    private final KhachHangLoginRepository khachHangLoginRepository;
+    private final GioHangChiTietRepository gioHangChiTietRepository;
 
     @ModelAttribute("mauSacs")
     public List<?> loadMauSacs() {
@@ -61,9 +68,32 @@ public class ShopController {
     }
 
     @GetMapping("/detail/{id}")
-    public String productDetail(@PathVariable Integer id, Model model) {
-        model.addAttribute("product", sanPhamService.getProductById(id));
+    public String productDetail(@PathVariable Integer id,
+                                Model model,
+                                Authentication authentication) {
+
+        var product = sanPhamService.getProductById(id);
+        model.addAttribute("product", product);
+
+        Map<Integer, Integer> cartQtyMap = new HashMap<>();
+
+        if (authentication != null) {
+            String username = authentication.getName();
+
+            Integer khId = khachHangLoginRepository.findByTenDangNhap(username)
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy khách hàng"))
+                    .getId();
+
+            for (var ct : product.getChiTietList()) {
+                Integer soLuongTrongGio = gioHangChiTietRepository
+                        .findSoLuongTrongGio(khId, ct.getId());
+
+                cartQtyMap.put(ct.getId(), soLuongTrongGio == null ? 0 : soLuongTrongGio);
+            }
+        }
+
+        model.addAttribute("cartQtyMap", cartQtyMap);
+
         return "client/product-detail";
     }
-
 }

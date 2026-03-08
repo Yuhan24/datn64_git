@@ -6,6 +6,10 @@
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
           rel="stylesheet">
+
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+
 </head>
 
 <body>
@@ -16,76 +20,223 @@
 
     <h3 class="mb-4">Đơn hàng của tôi</h3>
 
-    <table class="table table-bordered align-middle">
+    <!-- Tabs -->
+    <ul class="nav nav-tabs mb-4">
 
-        <thead class="table-dark">
-        <tr>
-            <th>Mã đơn</th>
-            <th>Ngày</th>
-            <th>Tổng tiền</th>
-            <th>Thanh toán</th>
-            <th>Trạng thái</th>
-            <th></th>
-        </tr>
-        </thead>
+        <li class="nav-item">
+            <button class="nav-link active"
+                    data-bs-toggle="tab"
+                    data-bs-target="#completed">
 
-        <tbody>
+                <i class="bi bi-check-circle"></i>
+                Đơn đã hoàn tất
 
-        <tr th:each="o : ${orders}">
+                <span class="badge bg-success ms-1"
+                      th:text="${completedOrders.size()}"></span>
 
-            <td th:text="${o.maDonHang}"></td>
+            </button>
+        </li>
 
-            <td th:text="${#temporals.format(o.ngayTao,'dd-MM-yyyy HH:mm')}"></td>
+        <li class="nav-item">
+            <button class="nav-link"
+                    data-bs-toggle="tab"
+                    data-bs-target="#pending">
 
-            <td class="text-danger fw-bold"
-                th:text="${#numbers.formatDecimal(o.tongTien,0,'COMMA',0,'POINT')} + ' VND'">
-            </td>
+                <i class="bi bi-clock"></i>
+                Đơn chưa hoàn tất
 
-            <td th:text="${o.phuongThucThanhToan}"></td>
+                <span class="badge bg-danger ms-1"
+                      th:text="${pendingOrders.size()}"></span>
 
-            <td>
-<span class="badge bg-warning"
-      th:if="${o.trangThaiId == 1}">
-      Chờ xác nhận
-</span>
+            </button>
+        </li>
 
-                <span class="badge bg-info"
-                      th:if="${o.trangThaiId == 2}">
-      Đã xác nhận
-</span>
+    </ul>
 
-                <span class="badge bg-primary"
-                      th:if="${o.trangThaiId == 3}">
-      Đang giao
-</span>
+    <div class="tab-content">
 
-                <span class="badge bg-success"
-                      th:if="${o.trangThaiId == 4}">
-      Hoàn thành
-</span>
+        <!-- ==================== -->
+        <!-- ĐƠN HOÀN TẤT -->
+        <!-- ==================== -->
 
-                <span class="badge bg-danger"
-                      th:if="${o.trangThaiId == 5}">
-      Đã hủy
-</span>
-            </td>
+        <div class="tab-pane fade show active" id="completed">
 
-            <td>
+            <table class="table table-bordered align-middle">
 
-                <a class="btn btn-sm btn-dark"
-                   th:href="@{/order/detail/{id}(id=${o.id})}">
-                    Xem chi tiết
-                </a>
+                <thead class="table-dark">
+                <tr>
+                    <th>Mã đơn</th>
+                    <th>Ngày</th>
+                    <th>Tổng tiền</th>
+                    <th>Thanh toán</th>
+                    <th>Trạng thái</th>
+                    <th></th>
+                </tr>
+                </thead>
 
-            </td>
+                <tbody>
 
-        </tr>
+                <tr th:each="o : ${completedOrders}">
 
-        </tbody>
+                    <td th:text="${o.maDonHang}"></td>
 
-    </table>
+                    <td th:text="${#temporals.format(o.ngayTao,'dd-MM-yyyy HH:mm')}"></td>
+
+                    <td class="text-danger fw-bold"
+                        th:text="${#numbers.formatDecimal(o.tongTien,0,'COMMA',0,'POINT')} + ' VND'">
+                    </td>
+
+                    <!-- Phương thức thanh toán -->
+
+                    <td>
+
+                        <span th:if="${o.phuongThucThanhToan == 'COD'}">
+                            <i class="bi bi-cash-stack text-success"></i>
+                            COD
+                        </span>
+
+                        <span th:if="${o.phuongThucThanhToan == 'VNPAY'}">
+                            <i class="bi bi-qr-code text-primary"></i>
+                            VNPAY
+                        </span>
+
+                    </td>
+
+                    <!-- Trạng thái -->
+
+                    <td>
+
+                        <span class="badge bg-warning text-dark"
+                              th:if="${o.trangThaiId == 1}">
+                            Chờ xác nhận
+                        </span>
+
+                        <span class="badge bg-primary"
+                              th:if="${o.trangThaiId == 2}">
+                            Đang giao
+                        </span>
+
+                        <span class="badge bg-success"
+                              th:if="${o.trangThaiId == 3}">
+                            Hoàn thành
+                        </span>
+
+                    </td>
+
+                    <td>
+
+                        <a class="btn btn-sm btn-dark"
+                           th:href="@{/order/detail/{id}(id=${o.id})}">
+                            Xem chi tiết
+                        </a>
+
+                    </td>
+
+                </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+        <!-- ==================== -->
+        <!-- ĐƠN CHƯA HOÀN TẤT -->
+        <!-- ==================== -->
+
+        <div class="tab-pane fade" id="pending">
+
+            <table class="table table-bordered align-middle">
+
+                <thead class="table-dark">
+                <tr>
+                    <th>Mã đơn</th>
+                    <th>Ngày</th>
+                    <th>Tổng tiền</th>
+                    <th>Thanh toán</th>
+                    <th>Trạng thái</th>
+                    <th></th>
+                </tr>
+                </thead>
+
+                <tbody>
+
+                <tr th:each="o : ${pendingOrders}">
+
+                    <td th:text="${o.maDonHang}"></td>
+
+                    <td th:text="${#temporals.format(o.ngayTao,'dd-MM-yyyy HH:mm')}"></td>
+
+                    <td class="text-danger fw-bold"
+                        th:text="${#numbers.formatDecimal(o.tongTien,0,'COMMA',0,'POINT')} + ' VND'">
+                    </td>
+
+                    <td>
+
+                        <span th:if="${o.phuongThucThanhToan == 'VNPAY'}">
+                            <i class="bi bi-qr-code text-primary"></i>
+                            VNPAY
+                        </span>
+
+                        <span th:if="${o.phuongThucThanhToan == 'COD'}">
+                            <i class="bi bi-cash-stack text-success"></i>
+                            COD
+                        </span>
+
+                    </td>
+
+                    <td>
+
+                        <span class="badge bg-secondary"
+                              th:if="${o.trangThaiThanhToan == 'CHO_THANH_TOAN'}">
+                            Chờ thanh toán
+                        </span>
+
+                        <span class="badge bg-danger"
+                              th:if="${o.trangThaiThanhToan == 'THAT_BAI'}">
+                            Thanh toán thất bại
+                        </span>
+
+                        <span class="badge bg-danger"
+                              th:if="${o.trangThaiId == 4}">
+                            Đã hủy
+                        </span>
+
+                    </td>
+
+                    <td>
+
+                        <a class="btn btn-sm btn-dark"
+                           th:href="@{/order/detail/{id}(id=${o.id})}">
+                            Xem chi tiết
+                        </a>
+
+                        <form th:if="${o.trangThaiThanhToan == 'CHO_THANH_TOAN'}"
+                              th:action="@{/order/cancel/{id}(id=${o.id})}"
+                              method="post"
+                              style="display:inline">
+
+                            <button class="btn btn-sm btn-danger">
+                                Hủy đơn
+                            </button>
+
+                        </form>
+
+                    </td>
+
+                </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
 
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
 </body>
 </html>

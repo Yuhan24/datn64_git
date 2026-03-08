@@ -48,3 +48,8 @@ public class KhuyenMai {
     @OneToMany(mappedBy = "khuyenMai")
     private List<DonHang> donHangs;
 }
+
+
+
+
+

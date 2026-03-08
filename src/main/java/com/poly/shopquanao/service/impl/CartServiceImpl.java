@@ -55,6 +55,9 @@ public class CartServiceImpl implements CartService {
         if (tongSoLuong > tonKho) {
             throw new RuntimeException("Không đủ số lượng trong kho");
         }
+        if (tonKho <= 0) {
+            throw new RuntimeException("Sản phẩm đã hết hàng");
+        }
 
         if (chiTiet != null) {
             chiTiet.setSoLuong(tongSoLuong);
@@ -74,14 +77,37 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public List<GioHangChiTiet> getCartByKhachHang(Integer khachHangId) {
+
         if (khachHangId == null) return List.of();
 
         var gioHangOpt = gioHangRepo.findByKhachHang_Id(khachHangId);
         if (gioHangOpt.isEmpty()) return List.of();
 
-        return chiTietRepo.findByGioHang_Id(gioHangOpt.get().getId());
+        Integer gioHangId = gioHangOpt.get().getId();
+
+        List<GioHangChiTiet> items = chiTietRepo.findByGioHang_Id(gioHangId);
+
+        for (GioHangChiTiet item : items) {
+
+            int tonKho = item.getSanPhamChiTiet().getSoLuong() == null
+                    ? 0
+                    : item.getSanPhamChiTiet().getSoLuong();
+
+            // sản phẩm đã hết hàng → xóa khỏi giỏ
+            if (tonKho <= 0) {
+                chiTietRepo.delete(item);
+                continue;
+            }
+
+            // nếu số lượng trong giỏ > tồn kho → giảm xuống
+            if (item.getSoLuong() > tonKho) {
+                item.setSoLuong(tonKho);
+                chiTietRepo.save(item);
+            }
+        }
+
+        return chiTietRepo.findByGioHang_Id(gioHangId);
     }
 
     @Override

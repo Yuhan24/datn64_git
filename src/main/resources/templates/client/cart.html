@@ -124,6 +124,7 @@
                                    name="quantity"
                                    th:value="${item.soLuong}"
                                    min="1"
+                                   th:attr="max=${item.sanPhamChiTiet.soLuong}"
                                    class="form-control qty-input"/>
 
                             <button type="submit" class="btn btn-outline-primary btn-sm">

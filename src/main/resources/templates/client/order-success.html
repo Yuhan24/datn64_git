@@ -11,12 +11,31 @@
 <div class="container mt-5 text-center">
     <div class="card p-5 shadow-sm">
         <h2 class="text-success mb-3">Đặt hàng thành công</h2>
-        <p>Mã đơn hàng: <strong th:text="${order.maDonHang}"></strong></p>
-        <p>Tổng tiền:
+
+        <p>
+            Mã đơn hàng:
+            <strong th:text="${order.maDonHang}"></strong>
+        </p>
+
+        <p th:if="${order.khuyenMai != null}">
+            Mã giảm giá:
+            <strong th:text="${order.khuyenMai.maKhuyenMai}"></strong>
+        </p>
+
+        <p>
+            Tiền giảm:
+            <strong class="text-success"
+                    th:text="${#numbers.formatDecimal(order.tienGiam != null ? order.tienGiam : 0,0,'COMMA',0,'POINT')} + ' VND'"></strong>
+        </p>
+
+        <p>
+            Tổng thanh toán:
             <strong class="text-danger"
                     th:text="${#numbers.formatDecimal(order.tongTien,0,'COMMA',0,'POINT')} + ' VND'"></strong>
         </p>
+
         <a th:href="@{/shop/home}" class="btn btn-primary">Tiếp tục mua sắm</a>
+        <a th:href="@{/order/my-orders}" class="btn btn-dark">Đơn hàng của tôi</a>
     </div>
 </div>
 </body>

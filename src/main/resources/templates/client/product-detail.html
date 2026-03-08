@@ -216,6 +216,7 @@
 
                     <input type="number"
                            name="quantity"
+                           id="qtyInput"
                            value="1"
                            min="1"
                            class="form-control"
@@ -243,220 +244,211 @@
 
 
 <script th:inline="javascript">
-
     const product = [[${product}]];
+    const cartQtyMap = [[${cartQtyMap}]];
 
-    let selectedColor=null;
-    let selectedSize=null;
+    let selectedColor = null;
+    let selectedSize = null;
 
-    const stockText=document.getElementById("stockText");
-    const hiddenId=document.getElementById("spHiddenId");
-    const addBtn=document.getElementById("addBtn");
+    const stockText = document.getElementById("stockText");
+    const hiddenId = document.getElementById("spHiddenId");
+    const addBtn = document.getElementById("addBtn");
+    const qtyInput = document.getElementById("qtyInput");
 
-    const selectedColorText=document.getElementById("selectedColorText");
-    const selectedSizeText=document.getElementById("selectedSizeText");
+    const selectedColorText = document.getElementById("selectedColorText");
+    const selectedSizeText = document.getElementById("selectedSizeText");
 
-
-    function changeMain(src,thumb){
-
-        document.getElementById("mainImage").src=src;
+    function changeMain(src, thumb) {
+        document.getElementById("mainImage").src = src;
 
         document.querySelectorAll(".thumb")
-            .forEach(t=>t.classList.remove("active"));
+            .forEach(t => t.classList.remove("active"));
 
         thumb.classList.add("active");
-
     }
 
-
-    function getColorCode(colorName){
-
-        const name=colorName
+    function getColorCode(colorName) {
+        const name = colorName
             .toLowerCase()
             .normalize("NFD")
-            .replace(/[\u0300-\u036f]/g,"")
-            .replace(/đ/g,"d")
+            .replace(/[\u0300-\u036f]/g, "")
+            .replace(/đ/g, "d")
             .trim();
 
-        const map={
-            "do":"#e53935",
-            "den":"#111111",
-            "trang":"#ffffff",
-            "xam":"#9e9e9e",
-            "ghi":"#9e9e9e",
-            "bac":"#c0c0c0",
-            "xanh":"#4caf50",
-            "xanh la":"#43a047",
-            "xanh duong":"#1e88e5",
-            "xanh navy":"#1f2a44",
-            "xanh da troi":"#81d4fa",
-            "vang":"#fdd835",
-            "cam":"#fb8c00",
-            "hong":"#ec407a",
-            "tim":"#8e24aa",
-            "nau":"#8d6e63",
-            "be":"#d7ccc8"
+        const map = {
+            "do": "#e53935",
+            "den": "#111111",
+            "trang": "#ffffff",
+            "xam": "#9e9e9e",
+            "ghi": "#9e9e9e",
+            "bac": "#c0c0c0",
+            "xanh": "#4caf50",
+            "xanh la": "#43a047",
+            "xanh duong": "#1e88e5",
+            "xanh navy": "#1f2a44",
+            "xanh da troi": "#81d4fa",
+            "vang": "#fdd835",
+            "cam": "#fb8c00",
+            "hong": "#ec407a",
+            "tim": "#8e24aa",
+            "nau": "#8d6e63",
+            "be": "#d7ccc8"
         };
 
         return map[name] || "#ccc";
-
     }
 
-
-    function findVariant(color,size){
-
-        return product.chiTietList.find(v=>
-
-            v.mauSacId==color &&
-            v.kichCoId==size
-
+    function findVariant(color, size) {
+        return product.chiTietList.find(v =>
+            v.mauSacId == color &&
+            v.kichCoId == size
         );
-
     }
 
-
-    function updateUI(){
-
-        if(!selectedColor || !selectedSize){
-
-            stockText.innerText="—";
-            addBtn.disabled=true;
-            return;
-
-        }
-
-        const v=findVariant(selectedColor,selectedSize);
-
-        if(!v){
-
-            stockText.innerText="0";
-            addBtn.disabled=true;
-            return;
-
-        }
-
-        stockText.innerText=v.soLuong;
-        hiddenId.value=v.id;
-
-        addBtn.disabled=v.soLuong<=0;
-
+    function getCartQty(variantId) {
+        if (!cartQtyMap) return 0;
+        return cartQtyMap[variantId] ? parseInt(cartQtyMap[variantId]) : 0;
     }
 
+    function updateUI() {
+        if (!selectedColor || !selectedSize) {
+            stockText.innerText = "—";
+            hiddenId.value = "";
+            qtyInput.value = 1;
+            qtyInput.max = 1;
+            addBtn.disabled = true;
+            return;
+        }
 
-    document.addEventListener("DOMContentLoaded",()=>{
+        const v = findVariant(selectedColor, selectedSize);
 
-        document.querySelectorAll(".color-btn").forEach(btn=>{
+        if (!v) {
+            stockText.innerText = "0";
+            hiddenId.value = "";
+            qtyInput.value = 1;
+            qtyInput.max = 1;
+            addBtn.disabled = true;
+            return;
+        }
 
-            const name=btn.dataset.colorName;
+        const tonKhoDB = v.soLuong || 0;
+        const soLuongTrongGio = getCartQty(v.id);
+        const coTheThem = Math.max(0, tonKhoDB - soLuongTrongGio);
 
-            const box=btn.querySelector(".color-fill");
+        stockText.innerText = coTheThem;
+        hiddenId.value = v.id;
 
-            box.style.background=getColorCode(name);
+        qtyInput.max = coTheThem > 0 ? coTheThem : 1;
 
+        let currentQty = parseInt(qtyInput.value) || 1;
+
+        if (coTheThem <= 0) {
+            qtyInput.value = 1;
+            addBtn.disabled = true;
+            return;
+        }
+
+        if (currentQty > coTheThem) {
+            qtyInput.value = coTheThem;
+        }
+
+        if (currentQty < 1) {
+            qtyInput.value = 1;
+        }
+
+        addBtn.disabled = false;
+    }
+
+    function setActiveColor(id) {
+        document.querySelectorAll(".color-btn")
+            .forEach(b => {
+                b.classList.remove("active");
+
+                if (b.dataset.colorId == id) {
+                    b.classList.add("active");
+                }
+            });
+    }
+
+    function setActiveSize(id) {
+        document.querySelectorAll(".size-btn")
+            .forEach(b => {
+                b.classList.remove("active");
+
+                if (b.dataset.sizeId == id) {
+                    b.classList.add("active");
+                }
+            });
+    }
+
+    function updateSelectedTexts() {
+        const c = document.querySelector(".color-btn.active");
+        const s = document.querySelector(".size-btn.active");
+
+        selectedColorText.innerText = c ? c.dataset.colorName : "—";
+        selectedSizeText.innerText = s ? s.dataset.sizeName : "—";
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        document.querySelectorAll(".color-btn").forEach(btn => {
+            const name = btn.dataset.colorName;
+            const box = btn.querySelector(".color-fill");
+            box.style.background = getColorCode(name);
         });
 
+        const first = product.chiTietList[0];
 
-        const first=product.chiTietList[0];
-
-        if(first){
-
-            selectedColor=first.mauSacId;
-            selectedSize=first.kichCoId;
+        if (first) {
+            selectedColor = first.mauSacId;
+            selectedSize = first.kichCoId;
 
             setActiveColor(selectedColor);
             setActiveSize(selectedSize);
 
             updateSelectedTexts();
-
             updateUI();
-
         }
-
     });
 
-
-    function setActiveColor(id){
-
-        document.querySelectorAll(".color-btn")
-            .forEach(b=>{
-
-                b.classList.remove("active");
-
-                if(b.dataset.colorId==id){
-
-                    b.classList.add("active");
-
-                }
-
-            });
-
-    }
-
-
-    function setActiveSize(id){
-
-        document.querySelectorAll(".size-btn")
-            .forEach(b=>{
-
-                b.classList.remove("active");
-
-                if(b.dataset.sizeId==id){
-
-                    b.classList.add("active");
-
-                }
-
-            });
-
-    }
-
-
-    function updateSelectedTexts(){
-
-        const c=document.querySelector(".color-btn.active");
-        const s=document.querySelector(".size-btn.active");
-
-        selectedColorText.innerText=c?c.dataset.colorName:"—";
-        selectedSizeText.innerText=s?s.dataset.sizeName:"—";
-
-    }
-
-
-    document.querySelectorAll(".color-btn").forEach(btn=>{
-
-        btn.onclick=function(){
-
-            selectedColor=this.dataset.colorId;
+    document.querySelectorAll(".color-btn").forEach(btn => {
+        btn.onclick = function () {
+            selectedColor = this.dataset.colorId;
 
             setActiveColor(selectedColor);
-
             updateSelectedTexts();
-
             updateUI();
-
-        }
-
+        };
     });
 
+    document.querySelectorAll(".size-btn").forEach(btn => {
+        btn.onclick = function () {
+            if (this.classList.contains("disabled")) return;
 
-    document.querySelectorAll(".size-btn").forEach(btn=>{
-
-        btn.onclick=function(){
-
-            if(this.classList.contains("disabled")) return;
-
-            selectedSize=this.dataset.sizeId;
+            selectedSize = this.dataset.sizeId;
 
             setActiveSize(selectedSize);
-
             updateSelectedTexts();
-
             updateUI();
-
-        }
-
+        };
     });
 
+    qtyInput.addEventListener("input", function () {
+        const stock = parseInt(stockText.innerText) || 0;
+        let value = parseInt(this.value) || 1;
+
+        if (stock <= 0) {
+            this.value = 1;
+            return;
+        }
+
+        if (value > stock) {
+            this.value = stock;
+        }
+
+        if (value < 1) {
+            this.value = 1;
+        }
+    });
 </script>
 
 </body>
