@@ -10,4 +10,5 @@ import java.util.List;
 public interface KichCoRepository extends JpaRepository<KichCo,Integer> {
     List<KichCo> findByTrangThai(Boolean trangThai);
     boolean existsByTenKichCoIgnoreCase(String tenkichCo);
+    List<KichCo> findByTrangThaiTrue();
 }

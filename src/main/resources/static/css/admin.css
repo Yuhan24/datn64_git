@@ -399,3 +399,37 @@ body{
         grid-template-columns: 1fr;
     }
 }
+.waiting-orders{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+}
+
+.waiting-order-item{
+    min-width:140px;
+    padding:12px;
+    border:1px solid var(--line);
+    border-radius:14px;
+    text-decoration:none;
+    color:var(--text);
+    background:#fff;
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+}
+
+.waiting-order-item.active{
+    border-color:var(--primary);
+    background:#f3f7ff;
+}
+
+.waiting-order-code{
+    font-weight:700;
+    font-size:14px;
+}
+
+.waiting-order-time{
+    font-size:13px;
+    color:#d97706;
+    font-weight:600;
+}

@@ -10,9 +10,16 @@
 
         <!-- Thanh trên -->
         <div class="pos-topbar">
-            <div class="pos-search-box">
-                <input type="text" class="input pos-search-input" placeholder="F3) Tìm kiếm sản phẩm">
-            </div>
+            <form th:action="@{/admin/pos}" method="get" class="pos-search-box" style="display:flex; gap:12px; flex:1;">
+                <input type="hidden" name="donHangId" th:value="${selectedDonHangId}">
+                <input type="text"
+                       class="input pos-search-input"
+                       name="keyword"
+                       th:value="${keyword}"
+                       placeholder="Tìm kiếm sản phẩm"
+                       style="flex:1;">
+                <button type="submit" class="btn primary">Tìm</button>
+            </form>
 
             <div class="pos-top-actions">
                 <form th:action="@{/admin/pos/create-order}" method="post" style="display:inline;">
@@ -22,7 +29,6 @@
                 </form>
             </div>
         </div>
-
         <div class="pos-layout">
 
             <!-- Cột trái -->
@@ -32,12 +38,15 @@
                 <div class="card">
                     <h3 class="section-title">Hóa đơn chờ</h3>
 
-                    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                    <div class="waiting-orders">
                         <a th:each="hd : ${hoaDonCho}"
                            th:href="@{/admin/pos(donHangId=${hd.id})}"
-                           class="btn small"
-                           th:classappend="${selectedDonHangId != null and selectedDonHangId == hd.id} ? ' primary' : ''"
-                           th:text="${hd.maDonHang}">
+                           class="waiting-order-item"
+                           th:classappend="${selectedDonHangId != null and selectedDonHangId == hd.id} ? ' active' : ''"
+                           th:attr="data-ngaytao=${hd.ngayTao}">
+
+                            <div class="waiting-order-code" th:text="${hd.maDonHang}">HD001</div>
+                            <div class="waiting-order-time countdown">30:00</div>
                         </a>
                     </div>
                 </div>
@@ -87,31 +96,52 @@
                 <div class="card pos-product-card">
                     <h3 class="section-title">Danh sách sản phẩm</h3>
 
-                    <div class="pos-filter-grid">
+                    <form th:action="@{/admin/pos}" method="get" class="pos-filter-grid">
+                        <input type="hidden" name="donHangId" th:value="${selectedDonHangId}">
+                        <input type="hidden" name="keyword" th:value="${keyword}">
+
                         <div>
                             <label>Giá tối thiểu (VND)</label>
-                            <input type="number" class="input" placeholder="Nhập giá tối thiểu">
+                            <input type="number" class="input" name="giaMin" th:value="${giaMin}" placeholder="Nhập giá tối thiểu">
                         </div>
 
                         <div>
                             <label>Giá tối đa (VND)</label>
-                            <input type="number" class="input" placeholder="Nhập giá tối đa">
+                            <input type="number" class="input" name="giaMax" th:value="${giaMax}" placeholder="Nhập giá tối đa">
                         </div>
 
                         <div>
                             <label>Màu sắc</label>
-                            <select class="input">
-                                <option>Chọn màu sắc</option>
+                            <select class="input" name="mauSacId">
+                                <option value="">Chọn màu sắc</option>
+                                <option th:each="m : ${listMauSac}"
+                                        th:value="${m.id}"
+                                        th:text="${m.tenMau}"
+                                        th:selected="${mauSacId != null and mauSacId == m.id}">
+                                </option>
                             </select>
                         </div>
 
                         <div>
                             <label>Kích thước</label>
-                            <select class="input">
-                                <option>Chọn kích thước</option>
+                            <select class="input" name="kichCoId">
+                                <option value="">Chọn kích thước</option>
+                                <option th:each="s : ${listKichCo}"
+                                        th:value="${s.id}"
+                                        th:text="${s.tenKichCo}"
+                                        th:selected="${kichCoId != null and kichCoId == s.id}">
+                                </option>
                             </select>
                         </div>
-                    </div>
+
+                        <div style="display:flex; gap:10px; align-items:end; grid-column: 1 / -1;">
+                            <button type="submit" class="btn primary">Lọc</button>
+
+                            <a th:href="@{/admin/pos(donHangId=${selectedDonHangId})}" class="btn">
+                                Xóa lọc
+                            </a>
+                        </div>
+                    </form>
 
                     <div class="table-wrap">
                         <table class="table pos-table">
@@ -225,14 +255,17 @@
                             <input type="number"
                                    id="tienKhachDua"
                                    name="tienKhachDua"
-                                   oninput="tinhTienThua()"
-                                   class="input">
-                        </div>
+                                   class="input"
+                                   placeholder="Nhập số tiền khách đưa">
 
-                        <div class="right-block money-line">
-                            <span>Tiền thừa trả khách:</span>
-                            <strong id="tienThua">0 VND</strong>
-                        </div>
+                            <input type="hidden"
+                                   id="tongTienValue"
+                                   th:value="${donHang != null && donHang.tongTien != null ? donHang.tongTien : 0}">
+
+                            <div class="right-block money-line">
+                                <span>Tiền thừa trả khách:</span>
+                                <strong id="tienThua">0 VND</strong>
+                            </div>
 
                         <input type="hidden" name="donHangId" th:value="${selectedDonHangId}">
                         <input type="hidden" th:if="${_csrf != null}"
@@ -251,21 +284,86 @@
         </div>
     </div>
 
-</section>
-<script>
-    function tinhTienThua(){
-        let tong = parseFloat(document.getElementById("tongTien").value) || 0;
-        let dua = parseFloat(document.getElementById("tienKhachDua").value) || 0;
+    <script th:inline="javascript">
+        function startCountdown() {
+            const items = document.querySelectorAll('.waiting-order-item');
 
-        let thua = dua - tong;
+            function updateAll() {
+                const now = new Date();
 
-        if(thua < 0){
-            document.getElementById("tienThua").innerText = "0 VND";
-        }else{
-            document.getElementById("tienThua").innerText =
-                thua.toLocaleString('vi-VN') + " VND";
+                items.forEach(item => {
+                    const ngayTao = item.dataset.ngaytao;
+                    const countdownEl = item.querySelector('.countdown');
+
+                    if (!ngayTao || !countdownEl) return;
+
+                    const createdAt = new Date(ngayTao.replace(' ', 'T'));
+                    const expireAt = new Date(createdAt.getTime() + 30 * 60 * 1000);
+
+                    const diff = expireAt - now;
+
+                    if (diff <= 0) {
+                        countdownEl.innerText = 'Hết hạn';
+                        countdownEl.style.color = '#dc2626';
+                        return;
+                    }
+
+                    const minutes = Math.floor(diff / 60000);
+                    const seconds = Math.floor((diff % 60000) / 1000);
+
+                    countdownEl.innerText =
+                        String(minutes).padStart(2, '0') + ':' + String(seconds).padStart(2, '0');
+                });
+            }
+
+            updateAll();
+            setInterval(updateAll, 1000);
         }
-    }
-</script>
+
+        document.addEventListener('DOMContentLoaded', startCountdown);
+    </script>
+
+    <script>
+        function tinhTienThua(){
+            let tong = parseFloat(document.getElementById("tongTien").value) || 0;
+            let dua = parseFloat(document.getElementById("tienKhachDua").value) || 0;
+
+            let thua = dua - tong;
+
+            if(thua < 0){
+                document.getElementById("tienThua").innerText = "0 VND";
+            }else{
+                document.getElementById("tienThua").innerText =
+                    thua.toLocaleString('vi-VN') + " VND";
+            }
+        }
+    </script>
+
+    <script>
+        const tienKhachInput = document.getElementById("tienKhachDua");
+        const tienThuaText = document.getElementById("tienThua");
+        const tongTienValue = document.getElementById("tongTienValue");
+
+        function formatVND(number){
+            return Number(number).toLocaleString('vi-VN') + " VND";
+        }
+
+        tienKhachInput.addEventListener("input", function(){
+
+            let tienKhach = parseFloat(tienKhachInput.value) || 0;
+            let tongTien = parseFloat(tongTienValue.value) || 0;
+
+            let tienThua = tienKhach - tongTien;
+
+            if(tienThua < 0){
+                tienThuaText.innerText = "0 VND";
+            }else{
+                tienThuaText.innerText = formatVND(tienThua);
+            }
+
+        });
+    </script>
+</section>
+
 </body>
 </html>

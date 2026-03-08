@@ -7,8 +7,12 @@ import com.poly.shopquanao.entity.SanPhamChiTiet;
 import com.poly.shopquanao.repository.admin.DonHangADRepository;
 import com.poly.shopquanao.repository.admin.DonHangChiTietADRepository;
 import com.poly.shopquanao.repository.admin.KhachHangRepository;
+import com.poly.shopquanao.repository.admin.KichCoRepository;
+import com.poly.shopquanao.repository.admin.MauSacRepository;
+import com.poly.shopquanao.repository.admin.NhanVienRepository;
 import com.poly.shopquanao.repository.admin.SanPhamChiTietADMRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,8 +26,12 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import org.springframework.web.bind.annotation.ResponseBody;
+import java.util.HashMap;
+import java.util.Map;
 @Controller
 @RequestMapping("/admin/pos")
+
 public class PosController {
 
     @Autowired
@@ -37,14 +45,39 @@ public class PosController {
     @Autowired
     private KhachHangRepository khachHangRepository;
 
+    @Autowired
+    private MauSacRepository mauSacRepository;
+
+    @Autowired
+    private KichCoRepository kichCoRepository;
+
+    @Autowired
+    private NhanVienRepository nhanVienRepository;
+
 
     @GetMapping("")
-    public String pos(@RequestParam(required = false) Integer donHangId ,Model model ) {
+    public String pos(@RequestParam(required = false) String keyword,
+                      @RequestParam(required = false) Integer mauSacId,
+                      @RequestParam(required = false) Integer kichCoId,
+                      @RequestParam(required = false) BigDecimal giaMin,
+                      @RequestParam(required = false) BigDecimal giaMax,
+            @RequestParam(required = false) Integer donHangId ,Model model ) {
+
+        if (keyword != null) {
+            keyword = keyword.trim();
+            if (keyword.isEmpty()) {
+                keyword = null;
+            }
+        }
             //Chỉ lấy đơn hàng tại quầy 1 = off 0 = onl
         List<DonHang> hoaDonCHo = donHangADRepository.findByLoaiDonAndTrangThaiIdOrderByNgayTaoDesc(1,1);
 
         //chỉ lấy sản phẩm chi tiết đang hoạt động
-        List<SanPhamChiTiet> listSpct = sanPhamChiTietADMRepository.findByTrangThaiTrue();
+//        List<SanPhamChiTiet> listSpct = sanPhamChiTietADMRepository.findByTrangThaiTrue();
+
+        List<SanPhamChiTiet> listSpct = sanPhamChiTietADMRepository.searchForPos(
+                keyword, mauSacId, kichCoId, giaMin, giaMax
+        );
 
 
 
@@ -55,6 +88,17 @@ public class PosController {
         model.addAttribute("hoaDonCho",hoaDonCHo);
         model.addAttribute("listSpct",listSpct);
         model.addAttribute("selectedDonHangId" ,donHangId);
+
+        model.addAttribute("keyword", keyword);
+        model.addAttribute("mauSacId", mauSacId);
+        model.addAttribute("kichCoId", kichCoId);
+        model.addAttribute("giaMin", giaMin);
+        model.addAttribute("giaMax", giaMax);
+
+        model.addAttribute("now", java.time.LocalDateTime.now());
+
+        model.addAttribute("listMauSac", mauSacRepository.findByTrangThaiTrue());
+        model.addAttribute("listKichCo", kichCoRepository.findByTrangThaiTrue());
 
         if (donHangId != null){
             DonHang donHang = donHangADRepository.findById(donHangId).orElse(null);
@@ -69,7 +113,7 @@ public class PosController {
     }
 
     @PostMapping("/create-order")
-    public String createOrder(RedirectAttributes ra){
+    public String createOrder(Authentication authentication, RedirectAttributes ra){
         DonHang dh = new DonHang();
         dh.setMaDonHang("HD"+ System.currentTimeMillis());
         dh.setNgayTao(LocalDateTime.now());
@@ -79,6 +123,12 @@ public class PosController {
         //trạng thái đơn
         dh.setLoaiDon(1);
         dh.setTrangThaiId(1); // chờ thanh toán ;
+
+        if (authentication != null) {
+            String username = authentication.getName();
+            nhanVienRepository.findByTenDangNhap(username)
+                    .ifPresent(dh::setNhanVien);
+        }
         donHangADRepository.save(dh);
 
         ra.addFlashAttribute("success" ,"Đã tạo hóa đơn mới");
@@ -162,6 +212,7 @@ public class PosController {
             public String pay(
                     @RequestParam Integer donHangId,
                     @RequestParam(required = false) String phuongThucThanhToan,
+                    Authentication authentication,
                     @RequestParam BigDecimal tienKhachDua,
                     RedirectAttributes ra
             ){
@@ -192,6 +243,12 @@ public class PosController {
                     SanPhamChiTiet spct = ct.getSanPhamChiTiet();
                     spct.setSoLuong(spct.getSoLuong() - ct.getSoLuong());
                     sanPhamChiTietADMRepository.save(spct);
+                }
+
+                if (authentication != null) {
+                    String username = authentication.getName();
+                    nhanVienRepository.findByTenDangNhap(username)
+                            .ifPresent(donHang::setNhanVien);
                 }
                 donHang.setTrangThaiId(3);//đã thanh toán
                 donHang.setTrangThaiThanhToan("DA_THANH_TOAN");
