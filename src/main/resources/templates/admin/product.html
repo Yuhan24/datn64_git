@@ -29,6 +29,7 @@
                 <th>Tên Thương Hiệu</th>
                 <th>Tên Danh Mục</th>
                 <th>Trạng Thái</th>
+                <th>Ảnh</th>
                 <th>Hành động</th>
             </tr>
             </thead>
@@ -43,6 +44,16 @@
                 <td th:text="${sp.danhMuc != null ? sp.danhMuc.tenDanhMuc : '-'}"></td>
 
                 <td th:text="${sp.trangThai ? 'Đang bán' : 'Ngừng bán'}"></td>
+                <td>
+                    <img th:if="${sp.hinhAnhList != null and !#lists.isEmpty(sp.hinhAnhList)}"
+                         th:src="@{'/images/' + ${sp.hinhAnhList[0].duongDanAnh}}"
+                         width="60" height="60"
+                         style="object-fit:cover;border-radius:8px;">
+
+                    <span th:if="${sp.hinhAnhList == null or #lists.isEmpty(sp.hinhAnhList)}">
+        Không có ảnh
+    </span>
+                </td>
 
                 <td>
                     <form th:action="@{'/admin/product/' + ${sp.id} + '/toggle-status'}"

@@ -52,4 +52,8 @@ public class SanPham {
     @Builder.Default
     @JsonIgnoreProperties("sanPham")
     private Set<SanPhamHinhAnh> hinhAnhList = new HashSet<>();
+//    @OneToMany(mappedBy = "sanPham", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+//    @Builder.Default
+//    @JsonIgnoreProperties("sanPham")
+//    private List<SanPhamHinhAnh> hinhAnhList = new ArrayList<>();
 }

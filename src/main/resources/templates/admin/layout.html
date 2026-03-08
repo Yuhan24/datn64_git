@@ -63,6 +63,11 @@
 
                 </div>
             </details>
+
+            <div class="group">Khuyến Mãi</div>
+            <a th:href="@{/admin/voucher}" th:classappend="${activeMenu}=='voucher' ? ' active' : ''">
+                <span class="dot"></span> Khuyến Mãi
+            </a>
             <div class="group">Khác</div>
             <a th:href="@{/admin/user}" th:classappend="${activeMenu}=='user' ? ' active' : ''">
                 <span class="dot"></span> Người dùng

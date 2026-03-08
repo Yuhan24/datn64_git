@@ -2,7 +2,9 @@ package com.poly.shopquanao.controller.admin;
 
 import com.poly.shopquanao.entity.SanPham;
 
+import com.poly.shopquanao.entity.SanPhamHinhAnh;
 import com.poly.shopquanao.repository.admin.DanhMucRepository;
+import com.poly.shopquanao.repository.admin.HinhAnhRepository;
 import com.poly.shopquanao.repository.admin.SanPhamADMRepository;
 import com.poly.shopquanao.repository.admin.ThuongHieuRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,7 +16,14 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+
+
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 @Controller
 @RequestMapping("/admin/product")
@@ -28,6 +37,9 @@ public class ProductController {
 
     @Autowired
     DanhMucRepository danhMucRepository;
+
+    @Autowired
+    HinhAnhRepository hinhAnhRepository;
 
 
     @GetMapping("")
@@ -63,7 +75,9 @@ public class ProductController {
     }
 
     @PostMapping("/save")
-    public String save(@ModelAttribute SanPham sanPham, RedirectAttributes ra){
+    public String save(@ModelAttribute SanPham sanPham,
+                       @RequestParam("file") MultipartFile file,
+                       RedirectAttributes ra) throws  Exception{
 
         String ten = sanPham.getTenSanPham().trim();
         String ma = sanPham.getMaSanPham().trim();
@@ -91,10 +105,27 @@ public class ProductController {
             return "redirect:/admin/product/add";
         }
 
+
         sanPham.setTenSanPham(ten);
         sanPham.setMaSanPham(ma);
 
         sanPhamADMRepository.save(sanPham);
+
+        if (!file.isEmpty()) {
+            String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
+
+            Path uploadPath = Paths.get("src/main/resources/static/images");
+            Files.createDirectories(uploadPath);
+
+            Path filePath = uploadPath.resolve(fileName);
+            Files.write(filePath, file.getBytes());
+
+            SanPhamHinhAnh img = new SanPhamHinhAnh();
+            img.setSanPham(sanPham);
+            img.setDuongDanAnh(fileName);
+
+            hinhAnhRepository.save(img);
+        }
 
         ra.addFlashAttribute("success","Thêm sản phẩm thành công");
 

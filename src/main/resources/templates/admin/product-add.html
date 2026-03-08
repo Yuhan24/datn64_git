@@ -1,60 +1,76 @@
-<section
-        xmlns:th="http://www.thymeleaf.org"
+<section xmlns:th="http://www.thymeleaf.org" th:fragment="content">
 
-        th:fragment="content">
+    <div class="card form-card">
 
-    <div class="card">
+        <h3 class="form-title">Thêm sản phẩm</h3>
 
-        <h3>Thêm sản phẩm</h3>
         <div th:if="${error}" class="alert error" th:text="${error}"></div>
         <div th:if="${success}" class="alert success" th:text="${success}"></div>
 
-
         <form th:action="@{/admin/product/save}"
               th:object="${sanPham}"
-              method="post">
+              method="post"
+              enctype="multipart/form-data"
+              class="product-form">
 
-            <label>Mã sản phẩm</label>
-            <input type="text" th:field="*{maSanPham}">
+            <div class="form-grid">
 
-            <label>Tên sản phẩm</label>
-            <input type="text" th:field="*{tenSanPham}">
+                <div class="form-group">
+                    <label>Mã sản phẩm</label>
+                    <input type="text" th:field="*{maSanPham}" class="input">
+                </div>
 
-            <label>Chất Liệu</label>
-            <input type="text" th:field="*{chatLieu}">
+                <div class="form-group">
+                    <label>Tên sản phẩm</label>
+                    <input type="text" th:field="*{tenSanPham}" class="input">
+                </div>
 
+                <div class="form-group">
+                    <label>Chất liệu</label>
+                    <input type="text" th:field="*{chatLieu}" class="input">
+                </div>
 
-            <!-- THƯƠNG HIỆU -->
-            <label>Thương hiệu</label>
-            <select th:field="*{thuongHieu}">chatLieu
-                <option value="">--Chọn--</option>
-                <option th:each="th : ${listThuongHieu}"
-                        th:value="${th.id}"
-                        th:text="${th.tenThuongHieu}">
-                </option>
-            </select>
+                <div class="form-group">
+                    <label>Thương hiệu</label>
+                    <select th:field="*{thuongHieu}" class="input">
+                        <option value="">-- Chọn --</option>
+                        <option th:each="th : ${listThuongHieu}"
+                                th:value="${th.id}"
+                                th:text="${th.tenThuongHieu}">
+                        </option>
+                    </select>
+                </div>
 
+                <div class="form-group">
+                    <label>Danh mục</label>
+                    <select th:field="*{danhMuc}" class="input">
+                        <option value="">-- Chọn --</option>
+                        <option th:each="dm : ${listDanhMuc}"
+                                th:value="${dm.id}"
+                                th:text="${dm.tenDanhMuc}">
+                        </option>
+                    </select>
+                </div>
 
-            <!-- DANH MỤC -->
-            <label>Danh mục</label>
-            <select th:field="*{danhMuc}">
-                <option value="">--Chọn--</option>
-                <option th:each="dm : ${listDanhMuc}"
-                        th:value="${dm.id}"
-                        th:text="${dm.tenDanhMuc}">
-                </option>
-            </select>
+                <div class="form-group">
+                    <label>Trạng thái</label>
+                    <select th:field="*{trangThai}" class="input">
+                        <option value="true">Đang bán</option>
+                        <option value="false">Ngừng bán</option>
+                    </select>
+                </div>
 
+                <div class="form-group full">
+                    <label>Ảnh sản phẩm</label>
+                    <input type="file" name="file" multiple class="input">
+                </div>
 
+            </div>
 
-
-            <label>Trạng thái</label>
-            <select th:field="*{trangThai}">
-                <option value="true">Đang bán</option>
-                <option value="false">Ngừng bán</option>
-            </select>
-
-            <button type="submit">Lưu</button>
+            <div class="form-actions">
+                <button type="submit" class="btn primary">Lưu sản phẩm</button>
+                <a th:href="@{/admin/product}" class="btn">Quay lại</a>
+            </div>
 
         </form>
 
