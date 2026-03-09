@@ -1,0 +1,54 @@
+<section xmlns:th="http://www.thymeleaf.org" th:fragment="content">
+    <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+            <h3 style="margin:0">Sản phẩm chi tiết</h3>
+            <a class="btn" th:href="@{/admin/product-detail/add}">+ Thêm SPCT</a>
+        </div>
+
+        <div th:if="${success}" class="alert success" th:text="${success}"></div>
+        <div th:if="${error}" class="alert error" th:text="${error}"></div>
+
+        <table class="table">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Sản phẩm</th>
+                <th>Size</th>
+                <th>Màu</th>
+                <th>Giá nhập</th>
+                <th>Giá bán</th>
+                <th>Số lượng</th>
+                <th>Trạng thái</th>
+                <th>Hành động</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            <tr th:each="x : ${listSpct}">
+                <td th:text="${x.id}"></td>
+                <td th:text="${x.sanPham != null ? x.sanPham.tenSanPham : '-'}"></td>
+                <td th:text="${x.kichCo != null ? x.kichCo.tenKichCo : '-'}"></td>
+                <td th:text="${x.mauSac != null ? x.mauSac.tenMau : '-'}"></td>
+                <td th:text="${x.giaNhap}"></td>
+                <td th:text="${x.giaBan}"></td>
+                <td th:text="${x.soLuong}"></td>
+
+                <td th:text="${x.trangThai ? 'Hoạt động' : 'Ngừng'}"></td>
+
+                <td>
+                    <form th:action="@{'/admin/product-detail/' + ${x.id} + '/toggle-status'}"
+                          method="post" style="display:inline;">
+                        <input type="hidden" th:if="${_csrf != null}"
+                               th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                        <button type="submit"
+                                class="btn small"
+                                th:classappend="${x.trangThai ? ' danger' : ' success'}"
+                                th:text="${x.trangThai ? 'Ngừng' : 'Bật'}">
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</section>

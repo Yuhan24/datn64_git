@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<th:block th:fragment="header">
+
+    <header style="background:#222;color:white;padding:15px">
+        <h2>SHOP QUẦN ÁO</h2>
+
+        <nav>
+            <a href="/" style="color:white">Trang chủ</a> |
+            <a href="/shop/product" style="color:white">Sản phẩm</a> |
+            <a href="/cart" style="color:white">Giỏ hàng</a> |
+
+            <span th:if="${#authentication != null}">
+            <a href="/logout" style="color:white">Đăng xuất</a>
+        </span>
+
+            <span th:if="${#authentication == null}">
+            <a href="/login" style="color:white">Đăng nhập</a>
+        </span>
+        </nav>
+    </header>
+
+    <hr>
+
+</th:block>
+
+</body>
+</html>

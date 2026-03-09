@@ -1,0 +1,217 @@
+<!--
+    dashboard.html – Trang Dashboard tổng quan (Admin).
+
+    Gồm:
+      1. 4 card thống kê chính
+      2. 4 card trạng thái đơn hàng
+      3. Biểu đồ tròn trạng thái đơn (Chart.js)
+      4. Biểu đồ top SP bán chạy (Chart.js)
+      5. Bảng 5 đơn hàng gần nhất
+      6. Nút "Xem thống kê chi tiết" dẫn đến /admin/thong-ke
+-->
+<section xmlns:th="http://www.thymeleaf.org" th:fragment="content">
+
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+
+    <!-- ==================== 4 CARD THỐNG KÊ CHÍNH ==================== -->
+    <div class="stats-grid">
+        <div class="stat-card blue">
+            <div class="stat-icon">📦</div>
+            <div class="stat-number" th:text="${tongSanPham}">0</div>
+            <div class="stat-label">Tổng sản phẩm</div>
+        </div>
+        <div class="stat-card green">
+            <div class="stat-icon">👥</div>
+            <div class="stat-number" th:text="${tongKhachHang}">0</div>
+            <div class="stat-label">Tổng khách hàng</div>
+        </div>
+        <div class="stat-card orange">
+            <div class="stat-icon">🛒</div>
+            <div class="stat-number" th:text="${tongDonHang}">0</div>
+            <div class="stat-label">Tổng đơn hàng</div>
+        </div>
+        <div class="stat-card purple">
+            <div class="stat-icon">💰</div>
+            <div class="stat-number" th:text="${#numbers.formatDecimal(tongDoanhThu, 0, 'COMMA', 0, 'POINT')} + ' ₫'">0 ₫</div>
+            <div class="stat-label">Tổng doanh thu</div>
+        </div>
+    </div>
+
+    <!-- ==================== 4 CARD TRẠNG THÁI ĐƠN ==================== -->
+    <div class="stats-grid" style="margin-top:14px;">
+        <div class="stat-card yellow">
+            <div class="stat-icon">⏳</div>
+            <div class="stat-number" th:text="${donChoXacNhan}">0</div>
+            <div class="stat-label">Chờ xác nhận</div>
+        </div>
+        <div class="stat-card blue">
+            <div class="stat-icon">🚚</div>
+            <div class="stat-number" th:text="${donDangGiao}">0</div>
+            <div class="stat-label">Đang giao</div>
+        </div>
+        <div class="stat-card green">
+            <div class="stat-icon">✅</div>
+            <div class="stat-number" th:text="${donHoanThanh}">0</div>
+            <div class="stat-label">Hoàn thành</div>
+        </div>
+        <div class="stat-card red">
+            <div class="stat-icon">❌</div>
+            <div class="stat-number" th:text="${donDaHuy}">0</div>
+            <div class="stat-label">Đã hủy</div>
+        </div>
+    </div>
+
+    <!-- ==================== BIỂU ĐỒ ==================== -->
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:14px; margin-top:14px;">
+
+        <!-- Biểu đồ tròn: Trạng thái đơn hàng -->
+        <div class="card">
+            <h3 style="margin-top:0">🥧 Trạng thái đơn hàng</h3>
+            <div style="position:relative; height:300px;">
+                <canvas id="dashPieChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Biểu đồ: Top sản phẩm bán chạy -->
+        <div class="card">
+            <h3 style="margin-top:0">🏆 Top sản phẩm bán chạy</h3>
+            <div style="position:relative; height:300px;">
+                <canvas id="dashTopChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== BẢNG 5 ĐƠN HÀNG GẦN NHẤT ==================== -->
+    <div class="card" style="margin-top:14px;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <h3 style="margin-top:0">🕐 Đơn hàng gần nhất</h3>
+            <!-- Nút dẫn đến trang thống kê chi tiết -->
+            <a th:href="@{/admin/thong-ke}" class="btn primary small">📊 Xem thống kê chi tiết →</a>
+        </div>
+
+        <table class="table">
+            <thead>
+            <tr>
+                <th>Mã đơn</th>
+                <th>Khách hàng</th>
+                <th>Tổng tiền</th>
+                <th>Trạng thái</th>
+                <th>Ngày tạo</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="dh : ${donHangGanNhat}">
+                <td th:text="${dh.maDonHang}"></td>
+                <td th:text="${dh.khachHang != null ? dh.khachHang.hoTen : '-'}"></td>
+                <td th:text="${dh.tongTien != null ? #numbers.formatDecimal(dh.tongTien, 0, 'COMMA', 0, 'POINT') + ' ₫' : '0 ₫'}"></td>
+                <td>
+                    <span class="badge"
+                          th:classappend="${dh.trangThaiId == 1 ? ' badge-warning' :
+                                           dh.trangThaiId == 2 ? ' badge-info' :
+                                           dh.trangThaiId == 3 ? ' badge-success' :
+                                           dh.trangThaiId == 4 ? ' badge-danger' : ''}"
+                          th:text="${dh.trangThaiId == 1 ? 'Chờ xác nhận' :
+                                    dh.trangThaiId == 2 ? 'Đang giao' :
+                                    dh.trangThaiId == 3 ? 'Hoàn thành' :
+                                    dh.trangThaiId == 4 ? 'Đã hủy' : 'Không rõ'}">
+                    </span>
+                </td>
+                <td th:text="${dh.ngayTao != null ? #temporals.format(dh.ngayTao, 'dd/MM/yyyy HH:mm') : '-'}"></td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(donHangGanNhat)}">
+                <td colspan="5" style="text-align:center; color:var(--muted);">Chưa có đơn hàng nào</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ==================== CHART.JS SCRIPTS ==================== -->
+    <script th:inline="javascript">
+        // Dữ liệu từ Controller
+        const choXacNhan = /*[[${donChoXacNhan}]]*/ 0;
+        const dangGiao   = /*[[${donDangGiao}]]*/ 0;
+        const hoanThanh  = /*[[${donHoanThanh}]]*/ 0;
+        const daHuy      = /*[[${donDaHuy}]]*/ 0;
+
+        const topSPLabels = /*[[${topSPLabels}]]*/ [];
+        const topSPValues = /*[[${topSPValues}]]*/ [];
+
+        // --- Biểu đồ Doughnut: Trạng thái đơn hàng ---
+        new Chart(document.getElementById('dashPieChart'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Chờ xác nhận', 'Đang giao', 'Hoàn thành', 'Đã hủy'],
+                datasets: [{
+                    data: [choXacNhan, dangGiao, hoanThanh, daHuy],
+                    backgroundColor: [
+                        'rgba(255, 210, 50, 0.7)',
+                        'rgba(79, 140, 255, 0.7)',
+                        'rgba(33, 196, 122, 0.7)',
+                        'rgba(255, 90, 106, 0.7)'
+                    ],
+                    borderColor: [
+                        'rgba(255, 210, 50, 1)',
+                        'rgba(79, 140, 255, 1)',
+                        'rgba(33, 196, 122, 1)',
+                        'rgba(255, 90, 106, 1)'
+                    ],
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { color: '#e8eefc', padding: 16 }
+                    }
+                }
+            }
+        });
+
+        // --- Biểu đồ Bar ngang: Top sản phẩm bán chạy ---
+        if (topSPLabels.length > 0) {
+            new Chart(document.getElementById('dashTopChart'), {
+                type: 'bar',
+                data: {
+                    labels: topSPLabels,
+                    datasets: [{
+                        label: 'Số lượng bán',
+                        data: topSPValues,
+                        backgroundColor: [
+                            'rgba(255, 99, 132, 0.7)',
+                            'rgba(54, 162, 235, 0.7)',
+                            'rgba(255, 206, 86, 0.7)',
+                            'rgba(75, 192, 192, 0.7)',
+                            'rgba(153, 102, 255, 0.7)'
+                        ],
+                        borderWidth: 2,
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: {
+                            ticks: { color: '#98a6c7' },
+                            grid: { color: 'rgba(255,255,255,0.05)' }
+                        },
+                        y: {
+                            ticks: { color: '#e8eefc' },
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+        } else {
+            document.getElementById('dashTopChart').parentElement.innerHTML =
+                '<p style="text-align:center; color:#98a6c7; padding:60px 0;">Chưa có dữ liệu bán hàng</p>';
+        }
+    </script>
+
+</section>

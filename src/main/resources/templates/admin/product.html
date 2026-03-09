@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<section th:fragment="content">
+
+    <div class="card">
+        <h3 style="margin-top:0">Danh sách sản phẩm</h3>
+        <a th:href="@{/admin/product/add}" class="btn">+ Thêm sản phẩm</a>
+
+        <table class="table">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Tên</th>
+                <th>Mã</th>
+                <th>Tên Thương Hiệu</th>
+                <th>Tên Danh Mục</th>
+                <th>Trạng Thái</th>
+                <th>Hành động</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            <tr th:each="sp : ${listSanPham}">
+                <td th:text="${sp.id}"></td>
+                <td th:text="${sp.tenSanPham}"></td>
+                <td th:text="${sp.maSanPham}"></td>
+                <td th:text="${sp.chatLieu}"></td>
+                <td th:text="${sp.thuongHieu != null ? sp.thuongHieu.tenThuongHieu : '-'}"></td>
+                <td th:text="${sp.danhMuc != null ? sp.danhMuc.tenDanhMuc : '-'}"></td>
+
+                <td th:text="${sp.trangThai ? 'Đang bán' : 'Ngừng bán'}"></td>
+
+                <td>
+                    <form th:action="@{'/admin/product/' + ${sp.id} + '/toggle-status'}"
+                          method="post" style="display:inline;">
+                        <input type="hidden"
+                               th:if="${_csrf != null}"
+                               th:name="${_csrf.parameterName}"
+                               th:value="${_csrf.token}">
+                        <button type="submit"
+                                onclick="return confirm('Bạn chắc muốn đổi trạng thái?')"
+                                class="btn small"
+                                th:classappend="${sp.trangThai ? ' danger' : ' success'}"
+                                th:text="${sp.trangThai ? 'Ngừng bán' : 'Bật bán'}">
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+</section>
+</body>
+</html>

@@ -1,0 +1,197 @@
+<!--
+    customer.html – Template quản lý khách hàng (Admin) – Thiết kế mới.
+
+    Tính năng:
+      1. Combobox lọc trạng thái (Hoạt động / Bị khoá), ưu tiên Hoạt động
+      2. Nút "Thêm khách hàng" → mở form thêm (ẩn/hiện bằng JS)
+      3. Nút "Sửa" → mở form sửa
+      4. Toast (thông báo thành công/lỗi) tự ẩn sau 3 giây
+      5. Ở tab "Bị khoá" → nút "Mở khoá" thay vì "Khoá"
+-->
+<section xmlns:th="http://www.thymeleaf.org" th:fragment="content">
+
+    <!-- ==================== TOAST THÔNG BÁO (tự ẩn sau 3 giây) ==================== -->
+    <div th:if="${success}" class="toast toast-success" id="toast" th:text="${success}"></div>
+    <div th:if="${error}" class="toast toast-error" id="toast" th:text="${error}"></div>
+
+    <!-- ==================== THANH CÔNG CỤ ==================== -->
+    <div class="card" style="margin-bottom:14px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+
+            <!-- Nút thêm khách hàng mới -->
+            <button class="btn primary" onclick="toggleForm()" id="btnToggleForm">
+                ➕ Thêm khách hàng
+            </button>
+
+            <!-- Combobox lọc trạng thái -->
+            <div style="display:flex; align-items:center; gap:8px;">
+                <label style="white-space:nowrap;">Trạng thái:</label>
+                <select class="input" style="width:200px;" onchange="filterByStatus(this.value)"
+                        id="statusFilter">
+                    <option value="true"  th:selected="${trangThai == true}">🟢 Hoạt động</option>
+                    <option value="false" th:selected="${trangThai == false}">🔴 Bị khoá</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== FORM THÊM / SỬA ==================== -->
+    <div class="card" id="formContainer"
+         th:style="${showForm != null && showForm} ? 'margin-bottom:14px;' : 'display:none; margin-bottom:14px;'">
+
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <h3 style="margin:0;" th:text="${isEdit != null && isEdit} ? '✏️ Sửa khách hàng' : '➕ Thêm khách hàng mới'">
+                Thêm khách hàng mới
+            </h3>
+            <button class="btn small" onclick="hideForm()" title="Đóng">✕</button>
+        </div>
+
+        <form th:action="${isEdit != null && isEdit}
+                         ? @{'/admin/customer/update/' + ${khachHang.id}}
+                         : @{/admin/customer/save}"
+              method="post"
+              style="display:grid; grid-template-columns: repeat(3, 1fr); gap:12px;">
+
+            <!-- Mã khách hàng -->
+            <div>
+                <label>Mã khách hàng</label>
+                <input class="input" type="text" name="maKhachHang"
+                       th:value="${khachHang.maKhachHang}"
+                       placeholder="VD: KH01 (để trống sẽ tự sinh)">
+            </div>
+
+            <!-- Họ tên -->
+            <div>
+                <label>Họ tên <span style="color:var(--danger);">*</span></label>
+                <input class="input" type="text" name="hoTen"
+                       th:value="${khachHang.hoTen}" required placeholder="Nhập họ tên">
+            </div>
+
+            <!-- Tên đăng nhập -->
+            <div>
+                <label>Tên đăng nhập <span style="color:var(--danger);">*</span></label>
+                <input class="input" type="text" name="tenDangNhap"
+                       th:value="${khachHang.tenDangNhap}" required placeholder="Unique">
+            </div>
+
+            <!-- Mật khẩu -->
+            <div>
+                <label th:text="${isEdit != null && isEdit} ? 'Mật khẩu mới (để trống = giữ cũ)' : 'Mật khẩu *'">
+                    Mật khẩu
+                </label>
+                <input class="input" type="password" name="matKhau"
+                       placeholder="Nhập mật khẩu"
+                       th:required="${isEdit == null || !isEdit}">
+            </div>
+
+            <!-- Số điện thoại -->
+            <div>
+                <label>Số điện thoại</label>
+                <input class="input" type="text" name="soDienThoai"
+                       th:value="${khachHang.soDienThoai}" placeholder="Số điện thoại">
+            </div>
+
+            <!-- Địa chỉ -->
+            <div>
+                <label>Địa chỉ</label>
+                <input class="input" type="text" name="diaChi"
+                       th:value="${khachHang.diaChi}" placeholder="Nhập địa chỉ">
+            </div>
+
+            <!-- Nút submit + huỷ -->
+            <div style="display:flex; align-items:end; gap:8px; grid-column: span 3;">
+                <button class="btn primary" type="submit"
+                        th:text="${isEdit != null && isEdit} ? '💾 Cập nhật' : '✅ Thêm mới'">
+                    Thêm mới
+                </button>
+                <a th:if="${isEdit != null && isEdit}"
+                   th:href="@{/admin/customer}" class="btn">Huỷ</a>
+            </div>
+        </form>
+    </div>
+
+    <!-- ==================== BẢNG DANH SÁCH ==================== -->
+    <div class="card">
+        <h3 style="margin-top:0"
+            th:text="${trangThai} ? '📋 Danh sách khách hàng hoạt động' : '📋 Danh sách khách hàng bị khoá'">
+            Danh sách
+        </h3>
+
+        <table class="table">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Mã KH</th>
+                <th>Họ tên</th>
+                <th>Tên đăng nhập</th>
+                <th>SĐT</th>
+                <th>Địa chỉ</th>
+                <th>Hành động</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="kh : ${listKhachHang}">
+                <td th:text="${kh.id}"></td>
+                <td th:text="${kh.maKhachHang}"></td>
+                <td th:text="${kh.hoTen}"></td>
+                <td th:text="${kh.tenDangNhap}"></td>
+                <td th:text="${kh.soDienThoai ?: '-'}"></td>
+                <td th:text="${kh.diaChi ?: '-'}"></td>
+                <td style="display:flex; gap:6px;">
+                    <!-- Nút SỬA -->
+                    <a th:href="@{'/admin/customer/edit/' + ${kh.id} + '?trangThai=' + ${trangThai}}"
+                       class="btn small primary">✏️ Sửa</a>
+
+                    <!-- Nút KHOÁ / MỞ KHOÁ -->
+                    <form th:action="@{'/admin/customer/' + ${kh.id} + '/toggle-status'}"
+                          method="post" style="display:inline;">
+                        <input type="hidden" th:if="${_csrf != null}"
+                               th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                        <input type="hidden" name="currentFilter" th:value="${trangThai}">
+                        <button type="submit"
+                                th:onclick="${trangThai} ? 'return confirm(\'Khoá tài khoản này?\')' : 'return confirm(\'Mở khoá tài khoản này?\')'"
+                                class="btn small"
+                                th:classappend="${trangThai ? ' danger' : ' success'}"
+                                th:text="${trangThai ? '🔒 Khoá' : '🔓 Mở khoá'}">
+                        </button>
+                    </form>
+                </td>
+            </tr>
+
+            <tr th:if="${#lists.isEmpty(listKhachHang)}">
+                <td colspan="7" style="text-align:center; color:var(--muted); padding:30px;">
+                    <span th:text="${trangThai} ? 'Chưa có khách hàng nào' : 'Không có khách hàng bị khoá'"></span>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ==================== JAVASCRIPT ==================== -->
+    <script>
+        function toggleForm() {
+            const form = document.getElementById('formContainer');
+            form.style.display = form.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function hideForm() {
+            document.getElementById('formContainer').style.display = 'none';
+        }
+
+        function filterByStatus(value) {
+            window.location.href = '/admin/customer?trangThai=' + value;
+        }
+
+        // Toast tự ẩn sau 3 giây
+        const toast = document.getElementById('toast');
+        if (toast) {
+            toast.style.display = 'block';
+            setTimeout(function() {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(-20px)';
+                setTimeout(function() { toast.style.display = 'none'; }, 300);
+            }, 3000);
+        }
+    </script>
+
+</section>

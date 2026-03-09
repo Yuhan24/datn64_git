@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<nav th:fragment="menu" class="navbar navbar-expand-lg bg-white border-bottom shadow-sm">
+    <div class="container">
+        <a class="navbar-brand fw-bold" th:href="@{/shop/home}">SHOP ÁO SƠ MI</a>
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarShop">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarShop">
+            <ul class="navbar-nav mx-auto gap-3">
+                <li class="nav-item">
+                    <a class="nav-link"
+                       th:href="@{/shop/home}"
+                       th:classappend="${activeMenu == 'home'} ? ' active fw-bold text-dark' : ''">
+                        Trang chủ
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link"
+                       th:href="@{/shop/product}"
+                       th:classappend="${activeMenu == 'product'} ? ' active fw-bold text-dark' : ''">
+                        Sản phẩm
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link"
+                       th:href="@{/shop/contact}"
+                       th:classappend="${activeMenu == 'contact'} ? ' active fw-bold text-dark' : ''">
+                        Liên hệ
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+</body>
+</html>
