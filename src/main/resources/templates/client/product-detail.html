@@ -3,124 +3,140 @@
 
 <head>
     <meta charset="UTF-8">
-    <title th:text="${product.tenSanPham}"></title>
+    <title th:text="${product.tenSanPham}">Chi tiết sản phẩm</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 
     <style>
-
-        .gallery{
-            display:flex;
-            gap:14px;
+        .gallery {
+            display: flex;
+            gap: 14px;
         }
 
-        .thumbs{
-            display:flex;
-            flex-direction:column;
-            gap:10px;
+        .thumbs {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 540px;
+            overflow-y: auto;
         }
 
-        .thumb{
-            width:84px;
-            height:84px;
-            object-fit:cover;
-            border-radius:10px;
-            border:1px solid #ddd;
-            cursor:pointer;
+        .thumb {
+            width: 84px;
+            height: 84px;
+            object-fit: cover;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            cursor: pointer;
         }
 
-        .thumb.active{
-            border:2px solid black;
+        .thumb.active {
+            border: 2px solid black;
         }
 
-        .main-img{
-            width:100%;
-            max-height:540px;
-            object-fit:cover;
-            border-radius:12px;
+        .main-img {
+            width: 100%;
+            max-height: 540px;
+            object-fit: cover;
+            border-radius: 12px;
         }
 
-        .product-title{
-            font-size:30px;
-            font-weight:700;
+        .product-title {
+            font-size: 30px;
+            font-weight: 700;
         }
 
-        .rating{
-            color:#f5a623;
+        .rating {
+            color: #f5a623;
         }
 
-        .price{
-            font-size:32px;
-            font-weight:700;
-            color:#dc3545;
+        .price {
+            font-size: 32px;
+            font-weight: 700;
+            color: #dc3545;
         }
 
-        .shipping{
-            color:#198754;
-            font-weight:600;
+        .shipping {
+            color: #198754;
+            font-weight: 600;
         }
 
-        .option-title{
-            font-size:16px;
-            font-weight:600;
-            margin-bottom:10px;
+        .option-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 10px;
         }
 
-        .option-group{
-            display:flex;
-            flex-wrap:wrap;
-            gap:14px;
+        .option-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
         }
 
-        .color-btn{
-            width:74px;
-            height:42px;
-            border:2px solid #d8d8d8;
-            border-radius:999px;
-            background:white;
-            display:flex;
-            align-items:center;
-            justify-content:center;
-            cursor:pointer;
-            padding:4px;
+        .color-btn {
+            width: 74px;
+            height: 42px;
+            border: 2px solid #d8d8d8;
+            border-radius: 999px;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            padding: 4px;
+            transition: .2s;
         }
 
-        .color-btn.active{
-            border-color:#2f49d1;
+        .color-btn.active {
+            border-color: #2f49d1;
         }
 
-        .color-fill{
-            width:100%;
-            height:100%;
-            border-radius:999px;
-            border:1px solid #ccc;
+        .color-fill {
+            width: 100%;
+            height: 100%;
+            border-radius: 999px;
+            border: 1px solid #ccc;
         }
 
-        .size-btn{
-            min-width:88px;
-            height:54px;
-            background:#d9d9d9;
-            border-radius:14px;
-            font-size:18px;
-            display:flex;
-            align-items:center;
-            justify-content:center;
-            cursor:pointer;
+        .size-btn {
+            min-width: 88px;
+            height: 54px;
+            background: #d9d9d9;
+            border-radius: 14px;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: .2s;
+            padding: 0 16px;
+            user-select: none;
         }
 
-        .size-btn.active{
-            background:black;
-            color:white;
-            font-weight:700;
+        .size-btn.active {
+            background: black;
+            color: white;
+            font-weight: 700;
         }
 
-        .size-btn.disabled{
-            opacity:.4;
-            cursor:not-allowed;
+        .size-btn.disabled {
+            opacity: .4;
+            cursor: not-allowed;
+            pointer-events: none;
         }
 
+        .gallery-empty {
+            width: 100%;
+            height: 420px;
+            border: 1px dashed #ccc;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #888;
+            background: #fafafa;
+        }
     </style>
-
 </head>
 
 <body>
@@ -128,92 +144,70 @@
 <div th:replace="~{client/menu :: menu}"></div>
 
 <div class="container mt-5">
-
     <div class="row g-4">
 
-        <!-- gallery -->
         <div class="col-md-6">
-
-            <div class="gallery">
-
-                <div class="thumbs">
-
+            <div class="gallery" th:if="${product.images != null and !#lists.isEmpty(product.images)}">
+                <div class="thumbs" id="thumbsContainer">
                     <img th:each="img : ${product.images}"
                          th:src="@{'/images/' + ${img}}"
+                         th:attr="data-img=${img}"
                          class="thumb"
-                         onclick="changeMain(this.src,this)">
-
+                         onclick="handleThumbClick(this)">
                 </div>
 
                 <img th:src="@{'/images/' + ${product.hinhAnh}}"
                      id="mainImage"
-                     class="main-img">
-
+                     class="main-img"
+                     alt="Ảnh sản phẩm">
             </div>
 
+            <div th:if="${product.images == null or #lists.isEmpty(product.images)}" class="gallery-empty">
+                Chưa có ảnh sản phẩm
+            </div>
         </div>
 
-
-        <!-- info -->
         <div class="col-md-6">
-
             <h1 class="product-title" th:text="${product.tenSanPham}"></h1>
 
-            <div class="rating mb-2">
-                ★★★★★ (5.0)
-            </div>
+            <div class="rating mb-2">★★★★★ (5.0)</div>
 
-            <div class="price mb-2"
-                 th:text="${#numbers.formatDecimal(product.giaMacDinh,0,'COMMA',0,'POINT')} + ' VND'">
-            </div>
+            <div class="price mb-2" id="priceText">—</div>
 
-            <div class="shipping mb-3">
-                🚚 Freeship toàn quốc
-            </div>
+            <div class="shipping mb-3">🚚 Freeship toàn quốc</div>
 
             <div class="mb-3">
                 Tồn kho: <b id="stockText">—</b>
             </div>
-
 
             <div class="option-title">
                 Màu sắc: <span id="selectedColorText">—</span>
             </div>
 
             <div id="colorGroup" class="option-group mb-4">
-
-<span th:each="m : ${product.mauList}"
-      class="color-btn"
-      th:attr="data-color-id=${m.id}, data-color-name=${m.ten}, title=${m.ten}">
-
-<span class="color-fill"></span>
-
-</span>
-
+                <span th:each="m : ${product.mauList}"
+                      class="color-btn"
+                      th:attr="data-color-id=${m.id}, data-color-name=${m.ten}, title=${m.ten}">
+                    <span class="color-fill"></span>
+                </span>
             </div>
-
 
             <div class="option-title">
                 Kích thước: <span id="selectedSizeText">—</span>
             </div>
 
             <div id="sizeGroup" class="option-group mb-4">
-
-<span th:each="s : ${product.sizeList}"
-      class="size-btn"
-      th:text="${s.ten}"
-      th:attr="data-size-id=${s.id}, data-size-name=${s.ten}">
-</span>
-
+                <span th:each="s : ${product.sizeList}"
+                      class="size-btn"
+                      th:text="${s.ten}"
+                      th:attr="data-size-id=${s.id}, data-size-name=${s.ten}">
+                </span>
             </div>
 
-
             <form th:action="@{/cart/add}" method="post" id="addForm">
-
                 <input type="hidden" name="spId" id="spHiddenId">
 
                 <div class="d-flex gap-2">
-
                     <input type="number"
                            name="quantity"
                            id="qtyInput"
@@ -225,23 +219,15 @@
                     <button class="btn btn-dark flex-grow-1"
                             id="addBtn"
                             disabled>
-
                         Thêm vào giỏ hàng
-
                     </button>
-
                 </div>
 
                 <div id="msg" class="text-danger mt-2"></div>
-
             </form>
-
         </div>
-
     </div>
-
 </div>
-
 
 <script th:inline="javascript">
     const product = [[${product}]];
@@ -254,26 +240,27 @@
     const hiddenId = document.getElementById("spHiddenId");
     const addBtn = document.getElementById("addBtn");
     const qtyInput = document.getElementById("qtyInput");
-
+    const priceText = document.getElementById("priceText");
     const selectedColorText = document.getElementById("selectedColorText");
     const selectedSizeText = document.getElementById("selectedSizeText");
+    const mainImage = document.getElementById("mainImage");
+    const msg = document.getElementById("msg");
 
-    function changeMain(src, thumb) {
-        document.getElementById("mainImage").src = src;
-
-        document.querySelectorAll(".thumb")
-            .forEach(t => t.classList.remove("active"));
-
-        thumb.classList.add("active");
+    function toStr(value) {
+        return value == null ? "" : String(value);
     }
 
-    function getColorCode(colorName) {
-        const name = colorName
+    function normalizeText(text) {
+        return (text || "")
             .toLowerCase()
             .normalize("NFD")
             .replace(/[\u0300-\u036f]/g, "")
             .replace(/đ/g, "d")
             .trim();
+    }
+
+    function getColorCode(colorName) {
+        const name = normalizeText(colorName);
 
         const map = {
             "do": "#e53935",
@@ -298,21 +285,162 @@
         return map[name] || "#ccc";
     }
 
-    function findVariant(color, size) {
-        return product.chiTietList.find(v =>
-            v.mauSacId == color &&
-            v.kichCoId == size
-        );
+    function formatPrice(value) {
+        if (value == null) return "—";
+        return new Intl.NumberFormat("vi-VN").format(Number(value)) + " VND";
     }
 
     function getCartQty(variantId) {
-        if (!cartQtyMap) return 0;
-        return cartQtyMap[variantId] ? parseInt(cartQtyMap[variantId]) : 0;
+        if (!cartQtyMap || variantId == null) return 0;
+        const value = cartQtyMap[variantId];
+        return value ? parseInt(value) || 0 : 0;
     }
 
-    function updateUI() {
+    function findVariant(colorId, sizeId) {
+        return (product.chiTietList || []).find(v =>
+            toStr(v.mauSacId) === toStr(colorId) &&
+            toStr(v.kichCoId) === toStr(sizeId)
+        );
+    }
+
+    function getVariantsByColor(colorId) {
+        return (product.chiTietList || []).filter(v =>
+            toStr(v.mauSacId) === toStr(colorId)
+        );
+    }
+
+    function getFirstValidVariantByColor(colorId) {
+        const list = getVariantsByColor(colorId);
+        return list.length > 0 ? list[0] : null;
+    }
+
+    function getImageByColorMap() {
+        return product.imageByColor || {};
+    }
+
+    function getImagesOfColor(colorId) {
+        const map = getImageByColorMap();
+        const images = map[toStr(colorId)] || map[colorId];
+        if (!images) return [];
+        return Array.isArray(images) ? images : [images];
+    }
+
+    function getFirstImageOfColor(colorId) {
+        const list = getImagesOfColor(colorId);
+        return list.length > 0 ? list[0] : null;
+    }
+
+    function getColorIdByImage(imgName) {
+        const map = getImageByColorMap();
+
+        for (const colorId in map) {
+            const colorImages = map[colorId];
+            if (Array.isArray(colorImages) && colorImages.includes(imgName)) {
+                return colorId;
+            }
+            if (typeof colorImages === "string" && colorImages === imgName) {
+                return colorId;
+            }
+        }
+        return null;
+    }
+
+    function setActiveColor(id) {
+        document.querySelectorAll(".color-btn").forEach(btn => {
+            btn.classList.toggle("active", toStr(btn.dataset.colorId) === toStr(id));
+        });
+    }
+
+    function setActiveSize(id) {
+        document.querySelectorAll(".size-btn").forEach(btn => {
+            btn.classList.toggle("active", toStr(btn.dataset.sizeId) === toStr(id));
+        });
+    }
+
+    function setActiveThumbByImage(imgName) {
+        let matchedThumb = null;
+
+        document.querySelectorAll(".thumb").forEach(t => {
+            t.classList.remove("active");
+            if (t.dataset.img === imgName) {
+                matchedThumb = t;
+            }
+        });
+
+        if (matchedThumb) {
+            matchedThumb.classList.add("active");
+        }
+
+        return matchedThumb;
+    }
+
+    function changeMainByImage(imgName) {
+        if (!mainImage || !imgName) return;
+
+        const thumb = setActiveThumbByImage(imgName);
+        if (thumb) {
+            mainImage.src = thumb.src;
+        } else {
+            mainImage.src = "/images/" + imgName;
+        }
+    }
+
+    function updateSelectedTexts() {
+        const activeColor = document.querySelector(".color-btn.active");
+        const activeSize = document.querySelector(".size-btn.active");
+
+        selectedColorText.innerText = activeColor ? activeColor.dataset.colorName : "—";
+        selectedSizeText.innerText = activeSize ? activeSize.dataset.sizeName : "—";
+    }
+
+    function updateAvailableSizes() {
+        const variants = getVariantsByColor(selectedColor);
+        const availableSizeIds = variants.map(v => toStr(v.kichCoId));
+
+        document.querySelectorAll(".size-btn").forEach(btn => {
+            const isAvailable = availableSizeIds.includes(toStr(btn.dataset.sizeId));
+            btn.classList.toggle("disabled", !isAvailable);
+
+            if (!isAvailable) {
+                btn.classList.remove("active");
+            }
+        });
+    }
+
+    function syncSelectedSizeWithColor() {
+        if (!selectedColor) {
+            selectedSize = null;
+            return;
+        }
+
+        const currentVariant = findVariant(selectedColor, selectedSize);
+        if (currentVariant) return;
+
+        const firstVariant = getFirstValidVariantByColor(selectedColor);
+        selectedSize = firstVariant ? firstVariant.kichCoId : null;
+    }
+
+    function syncImageWithSelectedColor() {
+        if (!selectedColor) return;
+
+        const targetImage = getFirstImageOfColor(selectedColor);
+        if (targetImage) {
+            changeMainByImage(targetImage);
+        }
+    }
+
+    function updateVariantInfo() {
+        msg.innerText = "";
+
+        updateAvailableSizes();
+        syncSelectedSizeWithColor();
+        setActiveColor(selectedColor);
+        setActiveSize(selectedSize);
+        updateSelectedTexts();
+
         if (!selectedColor || !selectedSize) {
             stockText.innerText = "—";
+            priceText.innerText = "—";
             hiddenId.value = "";
             qtyInput.value = 1;
             qtyInput.max = 1;
@@ -320,10 +448,11 @@
             return;
         }
 
-        const v = findVariant(selectedColor, selectedSize);
+        const variant = findVariant(selectedColor, selectedSize);
 
-        if (!v) {
+        if (!variant) {
             stockText.innerText = "0";
+            priceText.innerText = "—";
             hiddenId.value = "";
             qtyInput.value = 1;
             qtyInput.max = 1;
@@ -331,12 +460,13 @@
             return;
         }
 
-        const tonKhoDB = v.soLuong || 0;
-        const soLuongTrongGio = getCartQty(v.id);
+        const tonKhoDB = parseInt(variant.soLuong) || 0;
+        const soLuongTrongGio = getCartQty(variant.id);
         const coTheThem = Math.max(0, tonKhoDB - soLuongTrongGio);
 
         stockText.innerText = coTheThem;
-        hiddenId.value = v.id;
+        priceText.innerText = formatPrice(variant.giaBan);
+        hiddenId.value = variant.id;
 
         qtyInput.max = coTheThem > 0 ? coTheThem : 1;
 
@@ -345,6 +475,7 @@
         if (coTheThem <= 0) {
             qtyInput.value = 1;
             addBtn.disabled = true;
+            msg.innerText = "Biến thể này đã hết hàng.";
             return;
         }
 
@@ -359,95 +490,106 @@
         addBtn.disabled = false;
     }
 
-    function setActiveColor(id) {
-        document.querySelectorAll(".color-btn")
-            .forEach(b => {
-                b.classList.remove("active");
+    function handleThumbClick(thumb) {
+        if (!thumb) return;
 
-                if (b.dataset.colorId == id) {
-                    b.classList.add("active");
-                }
-            });
+        const imgName = thumb.dataset.img;
+        if (!imgName) return;
+
+        changeMainByImage(imgName);
+
+        const colorId = getColorIdByImage(imgName);
+        if (colorId != null) {
+            selectedColor = colorId;
+            syncSelectedSizeWithColor();
+        }
+
+        updateVariantInfo();
     }
 
-    function setActiveSize(id) {
-        document.querySelectorAll(".size-btn")
-            .forEach(b => {
-                b.classList.remove("active");
-
-                if (b.dataset.sizeId == id) {
-                    b.classList.add("active");
-                }
-            });
-    }
-
-    function updateSelectedTexts() {
-        const c = document.querySelector(".color-btn.active");
-        const s = document.querySelector(".size-btn.active");
-
-        selectedColorText.innerText = c ? c.dataset.colorName : "—";
-        selectedSizeText.innerText = s ? s.dataset.sizeName : "—";
-    }
-
-    document.addEventListener("DOMContentLoaded", () => {
+    function initColorSwatches() {
         document.querySelectorAll(".color-btn").forEach(btn => {
-            const name = btn.dataset.colorName;
-            const box = btn.querySelector(".color-fill");
-            box.style.background = getColorCode(name);
+            const fill = btn.querySelector(".color-fill");
+            if (fill) {
+                fill.style.background = getColorCode(btn.dataset.colorName);
+            }
+        });
+    }
+
+    function bindEvents() {
+        document.querySelectorAll(".color-btn").forEach(btn => {
+            btn.addEventListener("click", function () {
+                selectedColor = this.dataset.colorId;
+                syncSelectedSizeWithColor();
+                syncImageWithSelectedColor();
+                updateVariantInfo();
+            });
         });
 
-        const first = product.chiTietList[0];
+        document.querySelectorAll(".size-btn").forEach(btn => {
+            btn.addEventListener("click", function () {
+                if (this.classList.contains("disabled")) return;
+                selectedSize = this.dataset.sizeId;
+                updateVariantInfo();
+            });
+        });
 
-        if (first) {
-            selectedColor = first.mauSacId;
-            selectedSize = first.kichCoId;
+        qtyInput.addEventListener("input", function () {
+            const stock = parseInt(stockText.innerText) || 0;
+            let value = parseInt(this.value) || 1;
 
-            setActiveColor(selectedColor);
-            setActiveSize(selectedSize);
+            if (stock <= 0) {
+                this.value = 1;
+                return;
+            }
 
-            updateSelectedTexts();
-            updateUI();
+            if (value > stock) {
+                this.value = stock;
+            }
+
+            if (value < 1) {
+                this.value = 1;
+            }
+        });
+
+        document.getElementById("addForm").addEventListener("submit", function (e) {
+            if (!hiddenId.value) {
+                e.preventDefault();
+                msg.innerText = "Vui lòng chọn màu sắc và kích thước hợp lệ.";
+                return;
+            }
+
+            const stock = parseInt(stockText.innerText) || 0;
+            const quantity = parseInt(qtyInput.value) || 1;
+
+            if (stock <= 0) {
+                e.preventDefault();
+                msg.innerText = "Sản phẩm này hiện đã hết hàng.";
+                return;
+            }
+
+            if (quantity < 1 || quantity > stock) {
+                e.preventDefault();
+                msg.innerText = "Số lượng không hợp lệ.";
+            }
+        });
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+        initColorSwatches();
+        bindEvents();
+
+        const firstVariant = (product.chiTietList && product.chiTietList.length > 0)
+            ? product.chiTietList[0]
+            : null;
+
+        if (firstVariant) {
+            selectedColor = firstVariant.mauSacId;
+            selectedSize = firstVariant.kichCoId;
         }
-    });
 
-    document.querySelectorAll(".color-btn").forEach(btn => {
-        btn.onclick = function () {
-            selectedColor = this.dataset.colorId;
-
-            setActiveColor(selectedColor);
-            updateSelectedTexts();
-            updateUI();
-        };
-    });
-
-    document.querySelectorAll(".size-btn").forEach(btn => {
-        btn.onclick = function () {
-            if (this.classList.contains("disabled")) return;
-
-            selectedSize = this.dataset.sizeId;
-
-            setActiveSize(selectedSize);
-            updateSelectedTexts();
-            updateUI();
-        };
-    });
-
-    qtyInput.addEventListener("input", function () {
-        const stock = parseInt(stockText.innerText) || 0;
-        let value = parseInt(this.value) || 1;
-
-        if (stock <= 0) {
-            this.value = 1;
-            return;
-        }
-
-        if (value > stock) {
-            this.value = stock;
-        }
-
-        if (value < 1) {
-            this.value = 1;
-        }
+        syncImageWithSelectedColor();
+        updateVariantInfo();
     });
 </script>
 

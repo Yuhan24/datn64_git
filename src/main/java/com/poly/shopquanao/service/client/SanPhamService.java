@@ -4,6 +4,7 @@ import com.poly.shopquanao.dto.client.AttributeDTO;
 import com.poly.shopquanao.dto.client.ProductDTO;
 import com.poly.shopquanao.dto.client.ProductDetailDTO;
 import com.poly.shopquanao.entity.SanPham;
+import com.poly.shopquanao.entity.SanPhamChiTiet;
 import com.poly.shopquanao.entity.SanPhamHinhAnh;
 import com.poly.shopquanao.repository.client.SanPhamRepository;
 import lombok.RequiredArgsConstructor;
@@ -11,7 +12,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -31,13 +36,17 @@ public class SanPhamService {
                                            String price,
                                            String sort) {
 
-        List<Integer> safeMauIds = (mauIds == null || mauIds.isEmpty()) ? null : mauIds;
-        List<Integer> safeSizeIds = (sizeIds == null) ? List.of() : sizeIds;
+        List<Integer> safeMauIds = (mauIds == null || mauIds.isEmpty()) ? List.of(-1) : mauIds;
+        List<Integer> safeSizeIds = (sizeIds == null || sizeIds.isEmpty()) ? List.of(-1) : sizeIds;
+
+        long mauCount = (mauIds == null) ? 0 : mauIds.size();
+        long sizeCount = (sizeIds == null) ? 0 : sizeIds.size();
 
         List<SanPham> sanPhams = sanPhamRepository.filterProductsMixed(
                 safeMauIds,
-                safeSizeIds.isEmpty() ? List.of(-1) : safeSizeIds,
-                safeSizeIds.size(),
+                mauCount,
+                safeSizeIds,
+                sizeCount,
                 (price == null || price.isBlank()) ? null : price
         );
 
@@ -45,11 +54,11 @@ public class SanPhamService {
 
         if ("gia-tang".equals(sort)) {
             result = result.stream()
-                    .sorted(java.util.Comparator.comparing(ProductDTO::getGiaMacDinh))
+                    .sorted(Comparator.comparing(ProductDTO::getGiaMacDinh))
                     .toList();
         } else if ("gia-giam".equals(sort)) {
             result = result.stream()
-                    .sorted(java.util.Comparator.comparing(ProductDTO::getGiaMacDinh).reversed())
+                    .sorted(Comparator.comparing(ProductDTO::getGiaMacDinh).reversed())
                     .toList();
         }
 
@@ -58,7 +67,7 @@ public class SanPhamService {
 
     @Transactional(readOnly = true)
     public ProductDTO getProductById(Integer id) {
-        SanPham sp = sanPhamRepository.findById(id)
+        SanPham sp = sanPhamRepository.findDetailById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm id=" + id));
 
         return mapToDTO(sp);
@@ -66,9 +75,15 @@ public class SanPhamService {
 
     private ProductDTO mapToDTO(SanPham sp) {
 
-        var chiTietList = sp.getChiTietList();
+        List<SanPhamChiTiet> activeChiTietList = sp.getChiTietList().stream()
+                .filter(ct -> Boolean.TRUE.equals(ct.getTrangThai()))
+                .sorted(Comparator
+                        .comparing((SanPhamChiTiet ct) -> ct.getMauSac().getTenMau(), String.CASE_INSENSITIVE_ORDER)
+                        .thenComparing(ct -> ct.getKichCo().getTenKichCo(), String.CASE_INSENSITIVE_ORDER)
+                        .thenComparing(SanPhamChiTiet::getId))
+                .toList();
 
-        List<ProductDetailDTO> details = chiTietList.stream()
+        List<ProductDetailDTO> details = activeChiTietList.stream()
                 .map(ct -> new ProductDetailDTO(
                         ct.getId(),
                         ct.getMauSac().getId(),
@@ -80,7 +95,7 @@ public class SanPhamService {
                 ))
                 .toList();
 
-        var mauList = chiTietList.stream()
+        List<AttributeDTO> mauList = activeChiTietList.stream()
                 .map(ct -> new AttributeDTO(
                         ct.getMauSac().getId(),
                         ct.getMauSac().getTenMau()
@@ -88,7 +103,7 @@ public class SanPhamService {
                 .distinct()
                 .toList();
 
-        var sizeList = chiTietList.stream()
+        List<AttributeDTO> sizeList = activeChiTietList.stream()
                 .map(ct -> new AttributeDTO(
                         ct.getKichCo().getId(),
                         ct.getKichCo().getTenKichCo()
@@ -96,30 +111,30 @@ public class SanPhamService {
                 .distinct()
                 .toList();
 
-        BigDecimal giaMacDinh = chiTietList.stream()
+        BigDecimal giaMacDinh = activeChiTietList.stream()
                 .findFirst()
-                .map(ct -> ct.getGiaBan())
+                .map(SanPhamChiTiet::getGiaBan)
                 .orElse(BigDecimal.ZERO);
 
+        List<SanPhamHinhAnh> sortedImages = sp.getHinhAnhList().stream()
+                .filter(ha -> ha.getDuongDanAnh() != null && !ha.getDuongDanAnh().isBlank())
+                .sorted(Comparator.comparing(SanPhamHinhAnh::getId))
+                .toList();
 
-        // map ảnh theo màu
-        var imageByColor = sp.getHinhAnhList().stream()
-                .filter(ha -> ha.getMauSac() != null && ha.getDuongDanAnh() != null)
-                .collect(java.util.stream.Collectors.toMap(
-                        ha -> ha.getMauSac().getId(),
-                        SanPhamHinhAnh::getDuongDanAnh,
-                        (a, b) -> a
-                ));
-
-        // ⭐ gallery ảnh
-        List<String> images = sp.getHinhAnhList().stream()
+        List<String> images = sortedImages.stream()
                 .map(SanPhamHinhAnh::getDuongDanAnh)
-                .filter(java.util.Objects::nonNull)
                 .distinct()
                 .toList();
 
+        var imageByColor = sortedImages.stream()
+                .filter(ha -> ha.getMauSac() != null)
+                .collect(Collectors.groupingBy(
+                        ha -> ha.getMauSac().getId(),
+                        LinkedHashMap::new,
+                        Collectors.mapping(SanPhamHinhAnh::getDuongDanAnh, Collectors.toList())
+                ));
 
-        Integer firstColorId = chiTietList.stream()
+        Integer firstColorId = activeChiTietList.stream()
                 .findFirst()
                 .map(ct -> ct.getMauSac().getId())
                 .orElse(null);
@@ -127,11 +142,14 @@ public class SanPhamService {
         String hinhAnh = null;
 
         if (firstColorId != null) {
-            hinhAnh = imageByColor.get(firstColorId);
+            List<String> colorImages = imageByColor.get(firstColorId);
+            if (colorImages != null && !colorImages.isEmpty()) {
+                hinhAnh = colorImages.get(0);
+            }
         }
 
         if (hinhAnh == null) {
-            hinhAnh = images.stream().findFirst().orElse(null);
+            hinhAnh = images.stream().filter(Objects::nonNull).findFirst().orElse(null);
         }
 
         return new ProductDTO(
@@ -146,5 +164,4 @@ public class SanPhamService {
                 images
         );
     }
-
 }

@@ -1,11 +1,10 @@
-<section
-        xmlns:th="http://www.thymeleaf.org"
-
-        th:fragment="content">
+<section xmlns:th="http://www.thymeleaf.org" th:fragment="content">
 
     <div class="card">
-
         <h3>Thêm sản phẩm</h3>
+
+        <div th:if="${error}" class="alert error" th:text="${error}"></div>
+        <div th:if="${success}" class="alert success" th:text="${success}"></div>
 
         <form th:action="@{/admin/product/save}"
               th:object="${sanPham}"
@@ -17,13 +16,11 @@
             <label>Tên sản phẩm</label>
             <input type="text" th:field="*{tenSanPham}">
 
-            <label>Chất Liệu</label>
+            <label>Chất liệu</label>
             <input type="text" th:field="*{chatLieu}">
 
-
-            <!-- THƯƠNG HIỆU -->
             <label>Thương hiệu</label>
-            <select th:field="*{thuongHieu}">chatLieu
+            <select th:field="*{thuongHieu}">
                 <option value="">--Chọn--</option>
                 <option th:each="th : ${listThuongHieu}"
                         th:value="${th.id}"
@@ -31,8 +28,6 @@
                 </option>
             </select>
 
-
-            <!-- DANH MỤC -->
             <label>Danh mục</label>
             <select th:field="*{danhMuc}">
                 <option value="">--Chọn--</option>
@@ -42,19 +37,16 @@
                 </option>
             </select>
 
+            <label>Mô tả</label>
+            <textarea th:field="*{moTa}" rows="4"></textarea>
 
+            <input type="hidden" th:if="${_csrf != null}"
+                   th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
 
-
-            <label>Trạng thái</label>
-            <select th:field="*{trangThai}">
-                <option value="true">Đang bán</option>
-                <option value="false">Ngừng bán</option>
-            </select>
-
-            <button type="submit">Lưu</button>
-
+            <div style="display:flex;gap:10px;margin-top:16px">
+                <button class="btn success" type="submit">Lưu</button>
+                <a class="btn" th:href="@{/admin/product}">Quay lại</a>
+            </div>
         </form>
-
     </div>
-
 </section>

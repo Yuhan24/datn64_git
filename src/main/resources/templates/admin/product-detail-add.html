@@ -1,73 +1,95 @@
 <section xmlns:th="http://www.thymeleaf.org" th:fragment="content">
-    <div class="card" style="max-width:720px">
+    <div className="card" style="max-width:720px">
         <h3 style="margin-top:0">Thêm sản phẩm chi tiết</h3>
 
-        <div th:if="${error}" class="alert error" th:text="${error}"></div>
+        <div th:if="${error}" className="alert error" th:text="${error}"></div>
+        <div th:if="${success}" className="alert success" th:text="${success}"></div>
 
-        <form th:action="@{/admin/product-detail/save}" method="post" style="display:grid;gap:10px"  onsubmit="return validatePrice()">
-
-
+        <form th:action="@{/admin/product-detail/save}"
+              method="post"
+              encType="multipart/form-data"
+              style="display:grid;gap:10px"
+              onSubmit="return validatePrice()">
 
             <label>Sản phẩm</label>
-            <select class="input" name="sanPhamId" required>
+            <select className="input" name="sanPhamId" required>
                 <option value="">-- Chọn --</option>
                 <option th:each="p : ${products}" th:value="${p.id}" th:text="${p.tenSanPham}"></option>
             </select>
 
             <label>Kích cỡ</label>
-            <select class="input" name="kichCoId" required>
+            <select className="input" name="kichCoId" required>
                 <option value="">-- Chọn --</option>
                 <option th:each="s : ${sizes}" th:value="${s.id}" th:text="${s.tenKichCo}"></option>
             </select>
 
             <label>Màu sắc</label>
-            <select class="input" name="mauSacId" required>
+            <select className="input" name="mauSacId" required>
                 <option value="">-- Chọn --</option>
                 <option th:each="c : ${colors}" th:value="${c.id}" th:text="${c.tenMau}"></option>
             </select>
 
             <label>Giá nhập</label>
-            <input class="input"
-                   type="number"
-                   step="0.01"
-                   min="1"
-                   name="giaNhap"
-                   required>
+            <input className="input" type="number" step="0.01" min="1" name="giaNhap" required>
 
             <label>Giá bán</label>
-            <input class="input"
-                   type="number"
-                   step="0.01"
-                   min="1"
-                   name="giaBan"
-                   required>
+            <input className="input" type="number" step="0.01" min="1" name="giaBan" required>
 
-            <label>Số lượng</label>
-            <input class="input"
-                   type="number"
-                   min="0"
-                   name="soLuong"
-                   required>
+            <label>Số lượng nhập thêm</label>
+            <input className="input" type="number" min="1" name="soLuong" required>
 
+            <small style="color:#666">
+                Nếu biến thể đã tồn tại, hệ thống sẽ cộng thêm số lượng thay vì tạo mới.
+            </small>
+
+            <label>Ảnh của màu này (có thể chọn nhiều ảnh)</label>
+            <input className="input"
+                   type="file"
+                   name="images"
+                   accept="image/*"
+                   multiple>
+
+            <small style="color:#666">
+                Nếu chọn ảnh mới, hệ thống sẽ thay toàn bộ ảnh cũ của đúng màu này.
+                Nếu không chọn ảnh, hệ thống giữ nguyên ảnh màu đang có.
+            </small>
 
             <input type="hidden" th:if="${_csrf != null}"
                    th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
 
             <div style="display:flex;gap:10px">
-                <button class="btn success" type="submit">Lưu</button>
-                <a class="btn" th:href="@{/admin/product-detail}">Quay lại</a>
+                <button className="btn success" type="submit">Lưu</button>
+                <a className="btn" th:href="@{/admin/product-detail}">Quay lại</a>
             </div>
         </form>
     </div>
+
     <script>
         function validatePrice() {
-            const giaNhap = parseFloat(document.querySelector('[name="giaNhap"]').value);
-            const giaBan = parseFloat(document.querySelector('[name="giaBan"]').value);
+            const giaNhap = parseFloat(document.querySelector('[name="giaNhap"]').value || "0");
+            const giaBan = parseFloat(document.querySelector('[name="giaBan"]').value || "0");
+            const soLuong = parseInt(document.querySelector('[name="soLuong"]').value || "0");
+
+            if (giaNhap <= 0) {
+                alert("Giá nhập phải lớn hơn 0");
+                return false;
+            }
+
+            if (giaBan <= 0) {
+                alert("Giá bán phải lớn hơn 0");
+                return false;
+            }
 
             if (giaBan <= giaNhap) {
                 alert("Giá bán phải lớn hơn giá nhập");
                 return false;
             }
+
+            if (soLuong <= 0) {
+                alert("Số lượng nhập thêm phải lớn hơn 0");
+                return false;
+            }
+
             return true;
         }
     </script>

@@ -8,4 +8,5 @@ import java.util.List;
 public interface MauSacRepository extends JpaRepository<MauSac,Integer> {
     List<MauSac> findByTrangThai(Boolean trangThai);
     boolean existsByTenMauIgnoreCase(String tenMau);
+    List<MauSac> findByTrangThaiTrue();
 }

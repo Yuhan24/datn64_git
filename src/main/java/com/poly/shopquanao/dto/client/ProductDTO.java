@@ -15,9 +15,7 @@ public class ProductDTO {
     private List<AttributeDTO> mauList;
     private List<AttributeDTO> sizeList;
 
-    private Map<Integer, String> imageByColor;
-
-    // ⭐ thêm gallery
+    private Map<Integer, List<String>> imageByColor;
     private List<String> images;
 
     public ProductDTO(Integer id,
@@ -27,9 +25,8 @@ public class ProductDTO {
                       List<ProductDetailDTO> chiTietList,
                       List<AttributeDTO> mauList,
                       List<AttributeDTO> sizeList,
-                      Map<Integer, String> imageByColor,
+                      Map<Integer, List<String>> imageByColor,
                       List<String> images) {
-
         this.id = id;
         this.tenSanPham = tenSanPham;
         this.hinhAnh = hinhAnh;
@@ -41,16 +38,39 @@ public class ProductDTO {
         this.images = images;
     }
 
-    public Integer getId() { return id; }
-    public String getTenSanPham() { return tenSanPham; }
-    public String getHinhAnh() { return hinhAnh; }
-    public BigDecimal getGiaMacDinh() { return giaMacDinh; }
+    public Integer getId() {
+        return id;
+    }
 
-    public List<ProductDetailDTO> getChiTietList() { return chiTietList; }
-    public List<AttributeDTO> getMauList() { return mauList; }
-    public List<AttributeDTO> getSizeList() { return sizeList; }
+    public String getTenSanPham() {
+        return tenSanPham;
+    }
 
-    public Map<Integer, String> getImageByColor() { return imageByColor; }
+    public String getHinhAnh() {
+        return hinhAnh;
+    }
 
-    public List<String> getImages() { return images; }
+    public BigDecimal getGiaMacDinh() {
+        return giaMacDinh;
+    }
+
+    public List<ProductDetailDTO> getChiTietList() {
+        return chiTietList;
+    }
+
+    public List<AttributeDTO> getMauList() {
+        return mauList;
+    }
+
+    public List<AttributeDTO> getSizeList() {
+        return sizeList;
+    }
+
+    public Map<Integer, List<String>> getImageByColor() {
+        return imageByColor;
+    }
+
+    public List<String> getImages() {
+        return images;
+    }
 }

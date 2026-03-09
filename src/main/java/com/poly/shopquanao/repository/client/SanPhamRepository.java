@@ -6,11 +6,13 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface SanPhamRepository extends JpaRepository<SanPham, Integer> {
 
     @Query("""
-        select distinct sp from SanPham sp
+        select distinct sp
+        from SanPham sp
         left join fetch sp.chiTietList ct
         left join fetch ct.mauSac
         left join fetch ct.kichCo
@@ -36,6 +38,7 @@ public interface SanPhamRepository extends JpaRepository<SanPham, Integer> {
                     select 1
                     from SanPhamChiTiet ctPrice
                     where ctPrice.sanPham = sp
+                      and ctPrice.trangThai = true
                       and (
                             (:price = 'duoi-300' and ctPrice.giaBan < 300000)
                          or (:price = '300-500' and ctPrice.giaBan between 300000 and 500000)
@@ -45,28 +48,43 @@ public interface SanPhamRepository extends JpaRepository<SanPham, Integer> {
           )
 
           and (
-                :mauIds is null
-                or exists (
-                    select 1
+                :mauCount = 0
+                or :mauCount = (
+                    select count(distinct ctMau.mauSac.id)
                     from SanPhamChiTiet ctMau
                     where ctMau.sanPham = sp
+                      and ctMau.trangThai = true
                       and ctMau.mauSac.id in :mauIds
                 )
           )
 
           and (
                 :sizeCount = 0
-                or sp.id in (
-                    select ctSize.sanPham.id
+                or :sizeCount = (
+                    select count(distinct ctSize.kichCo.id)
                     from SanPhamChiTiet ctSize
-                    where ctSize.kichCo.id in :sizeIds
-                    group by ctSize.sanPham.id
-                    having count(distinct ctSize.kichCo.id) = :sizeCount
+                    where ctSize.sanPham = sp
+                      and ctSize.trangThai = true
+                      and ctSize.kichCo.id in :sizeIds
                 )
           )
     """)
     List<SanPham> filterProductsMixed(@Param("mauIds") List<Integer> mauIds,
+                                      @Param("mauCount") long mauCount,
                                       @Param("sizeIds") List<Integer> sizeIds,
                                       @Param("sizeCount") long sizeCount,
                                       @Param("price") String price);
+
+    @Query("""
+        select distinct sp
+        from SanPham sp
+        left join fetch sp.chiTietList ct
+        left join fetch ct.mauSac
+        left join fetch ct.kichCo
+        left join fetch sp.hinhAnhList ha
+        left join fetch ha.mauSac
+        where sp.id = :id
+          and sp.trangThai = true
+    """)
+    Optional<SanPham> findDetailById(@Param("id") Integer id);
 }

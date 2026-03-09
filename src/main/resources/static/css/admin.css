@@ -1,15 +1,14 @@
 :root{
-    --bg:#0b1220;
-    --panel:#111a2e;
-    --panel2:#0f1730;
-    --text:#e8eefc;
-    --muted:#98a6c7;
-    --line:rgba(255,255,255,.10);
+    --bg:#ffffff;
+    --panel:#ffffff;
+    --panel2:#f5f6fa;
+    --text:#111111;
+    --muted:#6b7280;
+    --line:#e5e7eb;
     --primary:#4f8cff;
     --success:#21c47a;
     --danger:#ff5a6a;
 }
-
 *{box-sizing:border-box}
 body{
     margin:0;
@@ -28,14 +27,14 @@ body{
 .sidebar{
     padding:14px;
     border-right:1px solid var(--line);
-    background:rgba(10,16,30,.85);
+    background:#ffffff;
 }
 .brand{
     display:flex; gap:10px; align-items:center;
     padding:12px;
     border:1px solid var(--line);
     border-radius:14px;
-    background:rgba(255,255,255,.03);
+    background:#ffffff;
     margin-bottom:12px;
 }
 .logo{
@@ -220,3 +219,217 @@ body{
 .alert { padding:10px 12px; border-radius:12px; margin:10px 0; border:1px solid transparent; }
 .alert.success { border-color: rgba(0,200,120,.35); }
 .alert.error { border-color: rgba(255,80,80,.35); }
+
+.product-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:15px;
+    margin-bottom:15px;
+}
+
+.search-form{
+    display:flex;
+    gap:10px;
+}
+
+.search-form .input{
+    width:250px;
+}
+.pagination{
+    margin-top:15px;
+    display:flex;
+    gap:8px;
+    align-items:center;
+    flex-wrap:wrap;
+}
+
+.pos-page{
+    display:flex;
+    flex-direction:column;
+    gap:16px;
+}
+
+.pos-topbar{
+    display:flex;
+    gap:12px;
+    align-items:center;
+    background:#ffffff;
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:14px;
+}
+
+.pos-search-box{
+    flex:1;
+}
+
+.pos-search-input{
+    height:46px;
+    font-size:15px;
+}
+
+.pos-top-actions{
+    display:flex;
+    gap:10px;
+}
+
+.pos-layout{
+    display:grid;
+    grid-template-columns: 2fr 1fr;
+    gap:16px;
+    align-items:start;
+}
+
+.pos-left,
+.pos-right{
+    display:flex;
+    flex-direction:column;
+    gap:16px;
+}
+
+.pos-cart-card{
+    min-height:120px;
+}
+
+.empty-cart{
+    min-height:80px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:var(--muted);
+    font-size:16px;
+}
+
+.pos-product-card{
+    min-height:400px;
+}
+
+.section-title{
+    margin:0 0 14px 0;
+    font-size:28px;
+    font-weight:700;
+    color:var(--text);
+}
+
+.pos-filter-grid{
+    display:grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap:14px;
+    margin-bottom:14px;
+}
+
+.pos-filter-grid label,
+.right-block label{
+    display:block;
+    margin-bottom:6px;
+    font-size:14px;
+    color:var(--text);
+}
+
+.table-wrap{
+    overflow:auto;
+}
+
+.pos-table th,
+.pos-table td{
+    vertical-align:middle;
+}
+
+.pos-payment-card{
+    position:sticky;
+    top:16px;
+    display:flex;
+    flex-direction:column;
+    gap:16px;
+}
+
+.right-block{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+}
+
+.customer-search{
+    display:grid;
+    grid-template-columns: 1fr 60px;
+    gap:8px;
+}
+
+.money-line{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    font-size:16px;
+}
+
+.total-pay{
+    font-size:28px;
+    font-weight:800;
+    color:var(--text);
+}
+
+.pos-pay-btn{
+    width:100%;
+    height:48px;
+    font-size:16px;
+}
+
+@media (max-width: 1100px){
+    .pos-layout{
+        grid-template-columns: 1fr;
+    }
+
+    .pos-filter-grid{
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 700px){
+    .pos-filter-grid{
+        grid-template-columns: 1fr;
+    }
+
+    .pos-topbar{
+        flex-direction:column;
+        align-items:stretch;
+    }
+
+    .customer-search{
+        grid-template-columns: 1fr;
+    }
+}
+.waiting-orders{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+}
+
+.waiting-order-item{
+    min-width:140px;
+    padding:12px;
+    border:1px solid var(--line);
+    border-radius:14px;
+    text-decoration:none;
+    color:var(--text);
+    background:#fff;
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+}
+
+.waiting-order-item.active{
+    border-color:var(--primary);
+    background:#f3f7ff;
+}
+
+.waiting-order-code{
+    font-weight:700;
+    font-size:14px;
+}
+
+.waiting-order-time{
+    font-size:13px;
+    color:#d97706;
+    font-weight:600;
+}

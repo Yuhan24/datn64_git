@@ -2,9 +2,12 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
 <div th:fragment="filter">
-    <form method="get" th:action="@{/shop/product}">
+    <form method="get" th:action="@{/shop/product}" id="filterForm">
         <div class="filter-box">
             <div class="filter-title">Bộ lọc</div>
+
+            <!-- Giữ sort nếu đang dùng -->
+            <input type="hidden" name="sort" th:value="${selectedSort}">
 
             <div class="filter-group">
                 <h6>Kích thước</h6>
@@ -16,7 +19,8 @@
                            th:value="${size.id}"
                            th:id="'size' + ${size.id}"
                            th:checked="${selectedSizeIds != null and #lists.contains(selectedSizeIds, size.id)}"
-                           onchange="this.form.submit()">
+                           onchange="document.getElementById('filterForm').submit()">
+
                     <label class="form-check-label"
                            th:for="'size' + ${size.id}"
                            th:text="${size.tenKichCo}">
@@ -32,10 +36,21 @@
                     <input class="form-check-input"
                            type="radio"
                            name="price"
+                           value=""
+                           id="price0"
+                           th:checked="${selectedPrice == null or selectedPrice == ''}"
+                           onchange="document.getElementById('filterForm').submit()">
+                    <label class="form-check-label" for="price0">Tất cả</label>
+                </div>
+
+                <div class="form-check">
+                    <input class="form-check-input"
+                           type="radio"
+                           name="price"
                            value="duoi-300"
                            id="price1"
-                           th:checked="${selectedPrice != null and selectedPrice == 'duoi-300'}"
-                           onchange="this.form.submit()">
+                           th:checked="${selectedPrice == 'duoi-300'}"
+                           onchange="document.getElementById('filterForm').submit()">
                     <label class="form-check-label" for="price1">Dưới 300.000đ</label>
                 </div>
 
@@ -45,8 +60,8 @@
                            name="price"
                            value="300-500"
                            id="price2"
-                           th:checked="${selectedPrice != null and selectedPrice == '300-500'}"
-                           onchange="this.form.submit()">
+                           th:checked="${selectedPrice == '300-500'}"
+                           onchange="document.getElementById('filterForm').submit()">
                     <label class="form-check-label" for="price2">300.000đ - 500.000đ</label>
                 </div>
 
@@ -56,8 +71,8 @@
                            name="price"
                            value="tren-500"
                            id="price3"
-                           th:checked="${selectedPrice != null and selectedPrice == 'tren-500'}"
-                           onchange="this.form.submit()">
+                           th:checked="${selectedPrice == 'tren-500'}"
+                           onchange="document.getElementById('filterForm').submit()">
                     <label class="form-check-label" for="price3">Trên 500.000đ</label>
                 </div>
             </div>
@@ -72,7 +87,8 @@
                            th:value="${mau.id}"
                            th:id="'mau' + ${mau.id}"
                            th:checked="${selectedMauIds != null and #lists.contains(selectedMauIds, mau.id)}"
-                           onchange="this.form.submit()">
+                           onchange="document.getElementById('filterForm').submit()">
+
                     <label class="form-check-label"
                            th:for="'mau' + ${mau.id}"
                            th:text="${mau.tenMau}">
