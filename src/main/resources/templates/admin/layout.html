@@ -22,6 +22,11 @@
                 <span class="dot"></span> Dashboard
             </a>
 
+            <!-- Menu: Thống kê chi tiết -->
+            <a th:href="@{/admin/thong-ke}" th:classappend="${activeMenu}=='thongke' ? ' active' : ''">
+                <span class="dot"></span> 📊 Thống kê
+            </a>
+
             <div class="group">Bán hàng</div>
             <a th:href="@{/admin/pos}" th:classappend="${activeMenu}=='pos' ? ' active' : ''">
                 <span class="dot"></span> Bán hàng tại quầy
@@ -63,12 +68,23 @@
 
                 </div>
             </details>
-            <div class="group">Khác</div>
-            <a th:href="@{/admin/user}" th:classappend="${activeMenu}=='user' ? ' active' : ''">
-                <span class="dot"></span> Người dùng
+            <!-- ==================== NHÓM: QUẢN LÝ ==================== -->
+            <div class="group">Quản lý</div>
+
+            <!-- Menu: Nhân viên -->
+            <a th:href="@{/admin/employee}" th:classappend="${activeMenu}=='employee' ? ' active' : ''">
+                <span class="dot"></span> Nhân viên
             </a>
+
+            <!-- Menu: Khách hàng -->
+            <a th:href="@{/admin/customer}" th:classappend="${activeMenu}=='customer' ? ' active' : ''">
+                <span class="dot"></span> Khách hàng
+            </a>
+
+            <!-- ==================== LOGOUT ==================== -->
+            <div class="group">Hệ thống</div>
             <a th:href="@{/logout}">
-                <span class="dot"></span> Logout
+                <span class="dot"></span> Đăng xuất
             </a>
         </div>
     </aside>
@@ -81,9 +97,9 @@
         <div class="content" th:replace="~{__${content}__}"></div>
 
     </main>
-<!-- Vì content của bạn là một chuỗi kiểu "admin/dashboard :: content".
-Thymeleaf cần “preprocess” chuỗi này thành fragment expression thật sự trước khi resolve template,
- nếu không nó sẽ cố resolve sai và nổ đúng lỗi như log.-->
+    <!-- Vì content của bạn là một chuỗi kiểu "admin/dashboard :: content".
+    Thymeleaf cần “preprocess” chuỗi này thành fragment expression thật sự trước khi resolve template,
+     nếu không nó sẽ cố resolve sai và nổ đúng lỗi như log.-->
 </div>
 </body>
 </html>

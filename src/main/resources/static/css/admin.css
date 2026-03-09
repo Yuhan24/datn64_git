@@ -220,3 +220,121 @@ body{
 .alert { padding:10px 12px; border-radius:12px; margin:10px 0; border:1px solid transparent; }
 .alert.success { border-color: rgba(0,200,120,.35); }
 .alert.error { border-color: rgba(255,80,80,.35); }
+
+/* ==================== DASHBOARD STATS ==================== */
+
+/* Grid 4 cột cho các card thống kê */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+}
+
+/* Card thống kê: icon + số + label */
+.stat-card {
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 20px;
+    text-align: center;
+    background: rgba(255,255,255,.03);
+    transition: transform .15s, box-shadow .15s; /* hiệu ứng hover mượt */
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(0,0,0,.3);
+}
+
+/* Icon emoji lớn */
+.stat-icon {
+    font-size: 28px;
+    margin-bottom: 6px;
+}
+
+/* Số liệu chính – to, đậm */
+.stat-number {
+    font-size: 26px;
+    font-weight: 900;
+    margin-bottom: 4px;
+}
+
+/* Nhãn mô tả */
+.stat-label {
+    color: var(--muted);
+    font-size: 13px;
+}
+
+/* Màu border cho từng loại card */
+.stat-card.blue   { border-color: rgba(79,140,255,.4);  }
+.stat-card.green  { border-color: rgba(33,196,122,.4);  }
+.stat-card.orange { border-color: rgba(255,165,0,.4);   }
+.stat-card.purple { border-color: rgba(160,100,255,.4); }
+.stat-card.yellow { border-color: rgba(255,210,50,.4);  }
+.stat-card.red    { border-color: rgba(255,90,106,.4);  }
+
+/* Responsive: 2 cột trên tablet */
+@media (max-width: 1000px) {
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+}
+/* Responsive: 1 cột trên mobile */
+@media (max-width: 600px) {
+    .stats-grid { grid-template-columns: 1fr; }
+}
+
+/* ==================== BADGE TRẠNG THÁI ==================== */
+
+/* Badge nhỏ hiển thị trạng thái đơn hàng */
+.badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    border: 1px solid var(--line);
+}
+
+.badge-warning { border-color: rgba(255,210,50,.5); color: #ffd232; }   /* Chờ xác nhận */
+.badge-info    { border-color: rgba(79,140,255,.5); color: #4f8cff; }   /* Đang giao */
+.badge-success { border-color: rgba(33,196,122,.5); color: #21c47a; }   /* Hoàn thành */
+.badge-danger  { border-color: rgba(255,90,106,.5); color: #ff5a6a; }   /* Đã hủy */
+
+/* ==================== SELECT DROPDOWN ==================== */
+
+/* Style cho select giống input */
+select.input {
+    appearance: none;
+    -webkit-appearance: none;
+    cursor: pointer;
+}
+
+/* ==================== TOAST THÔNG BÁO ==================== */
+
+/* Toast hiển thị ở góc trên bên phải, tự ẩn sau 3 giây */
+.toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+    padding: 14px 24px;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 14px;
+    box-shadow: 0 8px 32px rgba(0,0,0,.4);
+    transition: opacity 0.3s, transform 0.3s;   /* animation mượt khi ẩn */
+    display: block;
+    max-width: 400px;
+}
+
+/* Toast thành công – viền xanh lá */
+.toast-success {
+    background: rgba(33, 196, 122, 0.15);
+    border: 1px solid rgba(33, 196, 122, 0.5);
+    color: #21c47a;
+}
+
+/* Toast lỗi – viền đỏ */
+.toast-error {
+    background: rgba(255, 90, 106, 0.15);
+    border: 1px solid rgba(255, 90, 106, 0.5);
+    color: #ff5a6a;
+}
