@@ -79,7 +79,10 @@
                                 <td th:text="${ct.sanPhamChiTiet.kichCo.tenKichCo}"></td>
                                 <td th:text="${ct.soLuong}"></td>
                                 <td th:text="${#numbers.formatDecimal(ct.giaTaiThoiDiem, 0, 'COMMA', 0, 'POINT')} + ' đ'"></td>
-                                <td th:text="${#numbers.formatDecimal(ct.thanhTien, 0, 'COMMA', 0, 'POINT')} + ' đ'"></td>                                <td>
+                                <td th:text="${ct.giaTaiThoiDiem != null && ct.soLuong != null
+    ? #numbers.formatDecimal(ct.giaTaiThoiDiem * ct.soLuong, 0, 'COMMA', 0, 'POINT') + ' đ'
+    : '0 đ'}">
+                                </td>                          <td>
                                     <form th:action="@{'/admin/pos/remove-item/' + ${ct.id}}" method="post" style="display:inline;">
                                         <input type="hidden" th:if="${_csrf != null}"
                                                th:name="${_csrf.parameterName}" th:value="${_csrf.token}">

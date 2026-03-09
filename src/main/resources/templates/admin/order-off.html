@@ -1,0 +1,57 @@
+<section xmlns:th="http://www.thymeleaf.org" th:fragment="content">
+    <div class="card">
+        <h3 style="margin-top:0">Hóa đơn tại quầy</h3>
+
+        <table class="table">
+            <thead>
+            <tr>
+                <th>Mã hóa đơn</th>
+                <th>Ngày tạo</th>
+                <th>Nhân viên</th>
+                <th>Khách hàng</th>
+                <th>Tổng tiền</th>
+                <th>Thanh toán</th>
+                <th>Chi tiết</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="hd : ${listOrder}">
+                <td th:text="${hd.maDonHang}"></td>
+                <td th:text="${hd.ngayTao}"></td>
+                <td th:text="${hd.nhanVien != null ? hd.nhanVien.hoTen : '-'}"></td>
+                <td th:text="${hd.tenNguoiNhan != null and !#strings.isEmpty(hd.tenNguoiNhan) ? hd.tenNguoiNhan : (hd.khachHang != null ? hd.khachHang.hoTen : 'Khách vãng lai')}"></td>
+                <td th:text="${hd.tongTien != null ? #numbers.formatDecimal(hd.tongTien,0,'COMMA',0,'POINT') + ' đ' : '0 đ'}"></td>
+                <td th:text="${hd.trangThaiThanhToan}"></td>
+                <td>
+                    <a th:href="@{'/admin/order-off/detail/' + ${hd.id}}" class="btn small primary">
+                        Chi tiết
+                    </a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+        <!-- phân trang -->
+        <div class="pagination" th:if="${totalPages > 1}">
+            <a th:if="${currentPage > 0}"
+               th:href="@{/admin/order-off(page=${currentPage - 1}, size=${size})}"
+               class="btn small">
+                Trước
+            </a>
+
+            <span th:each="i : ${#numbers.sequence(0, totalPages - 1)}">
+        <a th:href="@{/admin/order-off(page=${i}, size=${size})}"
+           class="btn small"
+           th:classappend="${i == currentPage} ? ' primary' : ''"
+           th:text="${i + 1}">
+        </a>
+    </span>
+
+            <a th:if="${currentPage < totalPages - 1}"
+               th:href="@{/admin/order-off(page=${currentPage + 1}, size=${size})}"
+               class="btn small">
+                Sau
+            </a>
+        </div>
+    </div>
+</section>

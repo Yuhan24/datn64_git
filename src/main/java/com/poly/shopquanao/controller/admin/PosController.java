@@ -122,7 +122,8 @@ public class PosController {
 
         //trạng thái đơn
         dh.setLoaiDon(1);
-        dh.setTrangThaiId(1); // chờ thanh toán ;
+        dh.setTrangThaiId(1); // chờ thanh toán
+        dh.setTrangThaiThanhToan("CHUA_THANH_TOAN");
 
         if (authentication != null) {
             String username = authentication.getName();
@@ -147,8 +148,8 @@ public class PosController {
             ra.addFlashAttribute("error", "Sản phẩm chi tiết đang ngừng hoạt động");
             return "redirect:/admin/pos?donHangId=" + donHangId;
         }
-        if (spct.getSoLuong()==null||spct.getSoLuong()<=0){
-            ra.addFlashAttribute("error", "Sản phẩm chi tiết đang ngừng hoạt động");
+        if (spct.getSoLuong() == null || spct.getSoLuong() <= 0){
+            ra.addFlashAttribute("error", "Sản phẩm đã hết hàng");
             return "redirect:/admin/pos?donHangId=" + donHangId;
         }
         DonHangChiTiet ct = donHangChiTietADRepository.findByDonHang_IdAndSanPhamChiTiet_Id(donHangId,spctId).orElse(null);
@@ -218,27 +219,35 @@ public class PosController {
     ){
         DonHang donHang = donHangADRepository.findById(donHangId).orElseThrow();
         List<DonHangChiTiet> gioHang = donHangChiTietADRepository.findByDonHang_Id(donHangId);
+
         if (gioHang.isEmpty()){
             ra.addFlashAttribute("error", "Hóa đơn chưa có sản phẩm");
             return "redirect:/admin/pos?donHangId=" + donHangId;
         }
 
-        BigDecimal tongTien = donHang.getTongTien();
-        // validate tiền khách đưa
+        BigDecimal tongTien = donHang.getTongTien() != null ? donHang.getTongTien() : BigDecimal.ZERO;
+
         if (tienKhachDua.compareTo(tongTien) < 0) {
             ra.addFlashAttribute("error", "Tiền khách đưa phải lớn hơn hoặc bằng số tiền phải trả");
             return "redirect:/admin/pos?donHangId=" + donHangId;
         }
 
-        for (DonHangChiTiet ct :gioHang){
+        for (DonHangChiTiet ct : gioHang){
             SanPhamChiTiet spct = ct.getSanPhamChiTiet();
-            if (ct.getSoLuong()>spct.getSoLuong()){
+
+            if (!Boolean.TRUE.equals(spct.getTrangThai())) {
+                ra.addFlashAttribute("error",
+                        "Sản phẩm " + spct.getSanPham().getTenSanPham() + " đang ngừng hoạt động");
+                return "redirect:/admin/pos?donHangId=" + donHangId;
+            }
+
+            if (spct.getSoLuong() == null || ct.getSoLuong() > spct.getSoLuong()){
                 ra.addFlashAttribute("error",
                         "Sản phẩm " + spct.getSanPham().getTenSanPham() + " không đủ số lượng");
                 return "redirect:/admin/pos?donHangId=" + donHangId;
             }
         }
-        //trừ kho khi thanh toán
+
         for (DonHangChiTiet ct : gioHang){
             SanPhamChiTiet spct = ct.getSanPhamChiTiet();
             spct.setSoLuong(spct.getSoLuong() - ct.getSoLuong());
@@ -250,12 +259,17 @@ public class PosController {
             nhanVienRepository.findByTenDangNhap(username)
                     .ifPresent(donHang::setNhanVien);
         }
-        donHang.setTrangThaiId(3);//đã thanh toán
+
+        if (phuongThucThanhToan != null && !phuongThucThanhToan.trim().isEmpty()) {
+            donHang.setPhuongThucThanhToan(phuongThucThanhToan.trim());
+        }
+
+        donHang.setTrangThaiId(3); // đã thanh toán
         donHang.setTrangThaiThanhToan("DA_THANH_TOAN");
         donHangADRepository.save(donHang);
+
         ra.addFlashAttribute("success", "Thanh toán thành công");
         return "redirect:/admin/pos";
-
     }
 
     @GetMapping("/find-customer")
@@ -297,8 +311,6 @@ public class PosController {
 
         ra.addFlashAttribute("success", "Đã chọn khách vãng lai");
         return "redirect:/admin/pos?donHangId=" + donHangId;
-
-
     }
 
 

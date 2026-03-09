@@ -1,0 +1,77 @@
+<section xmlns:th="http://www.thymeleaf.org" th:fragment="content">
+    <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+            <div>
+                <h3 style="margin:0">Chi tiết hóa đơn tại quầy</h3>
+                <p style="margin:8px 0 0;color:#666">
+                    Mã hóa đơn: <b th:text="${donHang.maDonHang}"></b>
+                </p>
+            </div>
+
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+                <a th:href="@{/admin/order-off}" class="btn small">Quay lại</a>
+                <a th:href="@{'/admin/order-off/print/' + ${donHang.id}}" class="btn small primary" target="_blank">
+                    In hóa đơn
+                </a>
+            </div>
+        </div>
+
+        <table class="table" style="margin-top:20px">
+            <tbody>
+            <tr>
+                <th style="width:220px">Ngày tạo</th>
+                <td th:text="${donHang.ngayTao}"></td>
+            </tr>
+            <tr>
+                <th>Nhân viên</th>
+                <td th:text="${donHang.nhanVien != null ? donHang.nhanVien.hoTen : '-'}"></td>
+            </tr>
+            <tr>
+                <th>Khách hàng / Người nhận</th>
+                <td th:text="${donHang.tenNguoiNhan != null and !#strings.isEmpty(donHang.tenNguoiNhan) ? donHang.tenNguoiNhan : (donHang.khachHang != null ? donHang.khachHang.hoTen : 'Khách vãng lai')}"></td>
+            </tr>
+            <tr>
+                <th>Số điện thoại</th>
+                <td th:text="${donHang.soDienThoai != null ? donHang.soDienThoai : '-'}"></td>
+            </tr>
+            <tr>
+                <th>Trạng thái thanh toán</th>
+                <td th:text="${donHang.trangThaiThanhToan != null ? donHang.trangThaiThanhToan : 'CHUA_THANH_TOAN'}"></td>
+            </tr>
+            <tr>
+                <th>Tổng tiền</th>
+                <td th:text="${donHang.tongTien != null ? #numbers.formatDecimal(donHang.tongTien,0,'COMMA',0,'POINT') + ' đ' : '0 đ'}"></td>
+            </tr>
+            </tbody>
+        </table>
+
+        <h4 style="margin-top:24px">Danh sách sản phẩm</h4>
+
+        <table class="table">
+            <thead>
+            <tr>
+                <th>Tên sản phẩm</th>
+                <th>Màu</th>
+                <th>Size</th>
+                <th>Số lượng</th>
+                <th>Đơn giá</th>
+                <th>Thành tiền</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:if="${#lists.isEmpty(chiTietList)}">
+                <td colspan="6" style="text-align:center">Hóa đơn chưa có sản phẩm</td>
+            </tr>
+
+            <tr th:each="ct : ${chiTietList}">
+                <td th:text="${ct.sanPhamChiTiet.sanPham.tenSanPham}"></td>
+                <td th:text="${ct.sanPhamChiTiet.mauSac.tenMau}"></td>
+                <td th:text="${ct.sanPhamChiTiet.kichCo.tenKichCo}"></td>
+                <td th:text="${ct.soLuong}"></td>
+                <td th:text="${ct.giaTaiThoiDiem != null ? #numbers.formatDecimal(ct.giaTaiThoiDiem,0,'COMMA',0,'POINT') + ' đ' : '0 đ'}"></td>
+                <td th:text="${ct.giaTaiThoiDiem != null and ct.soLuong != null ? #numbers.formatDecimal(ct.giaTaiThoiDiem * ct.soLuong,0,'COMMA',0,'POINT') + ' đ' : '0 đ'}"></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</section>

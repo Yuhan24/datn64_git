@@ -26,9 +26,24 @@
             <a th:href="@{/admin/pos}" th:classappend="${activeMenu}=='pos' ? ' active' : ''">
                 <span class="dot"></span> Bán hàng tại quầy
             </a>
-            <a th:href="@{/admin/order}" th:classappend="${activeMenu}=='order' ? ' active' : ''">
-                <span class="dot"></span> Đơn hàng
-            </a>
+            <details class="nav-group"
+                     th:open="${activeGroup}=='order'">
+
+                <summary class="nav-parent">
+                    <span class="dot"></span> Quản Lý Hóa Đơn
+                </summary>
+
+                <div class="nav-children">
+
+
+                    <a th:href="@{/admin/order-off}"
+                       th:classappend="${activeMenu}=='order-off' ? ' active' : ''">Hóa đơn tại quầy  </a>
+
+                    <a th:href="@{/admin/order-onl}"
+                       th:classappend="${activeMenu}=='order-onl' ? ' active' : ''">Hóa đơn Online</a>
+
+                </div>
+            </details>
             <div class="group">Sản phẩm</div>
 
             <!-- 1) Mục riêng: Sản phẩm (CRUD) -->
@@ -63,6 +78,12 @@
 
                 </div>
             </details>
+
+
+            <div class="group">Khuyến Mãi</div>
+            <a th:href="@{/admin/voucher}" th:classappend="${activeMenu}=='voucher' ? ' active' : ''">
+                <span class="dot"></span> Khuyến Mãi
+            </a>
             <div class="group">Khác</div>
             <a th:href="@{/admin/user}" th:classappend="${activeMenu}=='user' ? ' active' : ''">
                 <span class="dot"></span> Người dùng
@@ -81,9 +102,9 @@
         <div class="content" th:replace="~{__${content}__}"></div>
 
     </main>
-<!-- Vì content của bạn là một chuỗi kiểu "admin/dashboard :: content".
-Thymeleaf cần “preprocess” chuỗi này thành fragment expression thật sự trước khi resolve template,
- nếu không nó sẽ cố resolve sai và nổ đúng lỗi như log.-->
+    <!-- Vì content của bạn là một chuỗi kiểu "admin/dashboard :: content".
+    Thymeleaf cần “preprocess” chuỗi này thành fragment expression thật sự trước khi resolve template,
+     nếu không nó sẽ cố resolve sai và nổ đúng lỗi như log.-->
 </div>
 </body>
 </html>
