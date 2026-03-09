@@ -1,0 +1,70 @@
+<section xmlns:th="http://www.thymeleaf.org" th:fragment="content">
+    <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+            <h3 style="margin-top:0">Chi tiết hóa đơn</h3>
+            <a th:href="@{/admin/order-off}" class="btn">Quay lại</a>
+        </div>
+
+        <div class="detail-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
+            <div>
+                <p><b>Mã hóa đơn:</b> <span th:text="${donHang.maDonHang}"></span></p>
+                <p><b>Ngày tạo:</b> <span th:text="${donHang.ngayTao}"></span></p>
+                <p><b>Loại đơn:</b> Tại quầy</p>
+                <p><b>Phương thức thanh toán:</b> <span th:text="${donHang.phuongThucThanhToan != null ? donHang.phuongThucThanhToan : '-'}"></span></p>
+            </div>
+
+            <div>
+                <p><b>Nhân viên:</b>
+                    <span th:text="${donHang.nhanVien != null ? donHang.nhanVien.hoTen : '-'}"></span>
+                </p>
+                <p><b>Khách hàng:</b>
+                    <span th:text="${donHang.khachHang != null ? donHang.khachHang.hoTen : 'Khách vãng lai'}"></span>
+                </p>
+                <p><b>SĐT:</b>
+                    <span th:text="${donHang.soDienThoai != null ? donHang.soDienThoai : '-'}"></span>
+                </p>
+                <p><b>Trạng thái thanh toán:</b>
+                    <span th:text="${donHang.trangThaiThanhToan}"></span>
+                </p>
+            </div>
+        </div>
+
+        <h4>Danh sách sản phẩm</h4>
+
+        <table class="table">
+            <thead>
+            <tr>
+                <th>Tên sản phẩm</th>
+                <th>Màu sắc</th>
+                <th>Kích thước</th>
+                <th>Số lượng</th>
+                <th>Giá tại thời điểm</th>
+                <th>Thành tiền</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="ct : ${chiTietList}">
+                <td th:text="${ct.sanPhamChiTiet.sanPham.tenSanPham}"></td>
+                <td th:text="${ct.sanPhamChiTiet.mauSac.tenMau}"></td>
+                <td th:text="${ct.sanPhamChiTiet.kichCo.tenKichCo}"></td>
+                <td th:text="${ct.soLuong}"></td>
+                <td th:text="${#numbers.formatDecimal(ct.giaTaiThoiDiem,0,'COMMA',0,'POINT')} + ' đ'"></td>
+                <td th:text="${#numbers.formatDecimal(ct.thanhTien,0,'COMMA',0,'POINT')} + ' đ'"></td>
+            </tr>
+            </tbody>
+        </table>
+
+        <div style="margin-top:20px;text-align:right;">
+            <h3>
+                Tổng tiền:
+                <span th:text="${donHang.tongTien != null ? #numbers.formatDecimal(donHang.tongTien,0,'COMMA',0,'POINT') + ' đ' : '0 đ'}"></span>
+            </h3>
+        </div>
+    </div>
+    <div>
+        <a th:href="@{'/admin/order-off/print/' + ${donHang.id}}" class="btn primary">
+            Xuất hóa đơn
+        </a>
+    </div>
+
+</section>
