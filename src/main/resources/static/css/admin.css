@@ -220,288 +220,138 @@ body{
 .alert.success { border-color: rgba(0,200,120,.35); }
 .alert.error { border-color: rgba(255,80,80,.35); }
 
-.product-header{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    gap:15px;
-    margin-bottom:15px;
-}
+/* ==================== DASHBOARD STATS ==================== */
 
-.search-form{
-    display:flex;
-    gap:10px;
-}
 
-.search-form .input{
-    width:250px;
-}
-.pagination{
-    margin-top:15px;
-    display:flex;
-    gap:8px;
-    align-items:center;
-    flex-wrap:wrap;
-}
-
-.pos-page{
-    display:flex;
-    flex-direction:column;
-    gap:16px;
-}
-
-.pos-topbar{
-    display:flex;
-    gap:12px;
-    align-items:center;
-    background:#ffffff;
-    border:1px solid var(--line);
-    border-radius:16px;
-    padding:14px;
-}
-
-.pos-search-box{
-    flex:1;
-}
-
-.pos-search-input{
-    height:46px;
-    font-size:15px;
-}
-
-.pos-top-actions{
-    display:flex;
-    gap:10px;
-}
-
-.pos-layout{
-    display:grid;
-    grid-template-columns: 2fr 1fr;
-    gap:16px;
-    align-items:start;
-}
-
-.pos-left,
-.pos-right{
-    display:flex;
-    flex-direction:column;
-    gap:16px;
-}
-
-.pos-cart-card{
-    min-height:120px;
-}
-
-.empty-cart{
-    min-height:80px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    color:var(--muted);
-    font-size:16px;
-}
-
-.pos-product-card{
-    min-height:400px;
-}
-
-.section-title{
-    margin:0 0 14px 0;
-    font-size:28px;
-    font-weight:700;
-    color:var(--text);
-}
-
-.pos-filter-grid{
-    display:grid;
+/* Grid 4 cột cho các card thống kê */
+.stats-grid {
+    display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap:14px;
-    margin-bottom:14px;
+    gap: 14px;
 }
 
-.pos-filter-grid label,
-.right-block label{
-    display:block;
-    margin-bottom:6px;
-    font-size:14px;
-    color:var(--text);
+
+/* Card thống kê: icon + số + label */
+.stat-card {
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 20px;
+    text-align: center;
+    background: rgba(255,255,255,.03);
+    transition: transform .15s, box-shadow .15s; /* hiệu ứng hover mượt */
 }
 
-.table-wrap{
-    overflow:auto;
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(0,0,0,.3);
 }
 
-.pos-table th,
-.pos-table td{
-    vertical-align:middle;
+
+/* Icon emoji lớn */
+.stat-icon {
+    font-size: 28px;
+    margin-bottom: 6px;
 }
 
-.pos-payment-card{
-    position:sticky;
-    top:16px;
-    display:flex;
-    flex-direction:column;
-    gap:16px;
+
+/* Số liệu chính – to, đậm */
+.stat-number {
+    font-size: 26px;
+    font-weight: 900;
+    margin-bottom: 4px;
 }
 
-.right-block{
-    display:flex;
-    flex-direction:column;
-    gap:8px;
+
+/* Nhãn mô tả */
+.stat-label {
+    color: var(--muted);
+    font-size: 13px;
 }
 
-.customer-search{
-    display:grid;
-    grid-template-columns: 1fr 60px;
-    gap:8px;
+
+/* Màu border cho từng loại card */
+.stat-card.blue   { border-color: rgba(79,140,255,.4);  }
+.stat-card.green  { border-color: rgba(33,196,122,.4);  }
+.stat-card.orange { border-color: rgba(255,165,0,.4);   }
+.stat-card.purple { border-color: rgba(160,100,255,.4); }
+.stat-card.yellow { border-color: rgba(255,210,50,.4);  }
+.stat-card.red    { border-color: rgba(255,90,106,.4);  }
+
+
+/* Responsive: 2 cột trên tablet */
+@media (max-width: 1000px) {
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+}
+/* Responsive: 1 cột trên mobile */
+@media (max-width: 600px) {
+    .stats-grid { grid-template-columns: 1fr; }
 }
 
-.money-line{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    font-size:16px;
+
+/* ==================== BADGE TRẠNG THÁI ==================== */
+
+
+/* Badge nhỏ hiển thị trạng thái đơn hàng */
+.badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    border: 1px solid var(--line);
 }
 
-.total-pay{
-    font-size:28px;
-    font-weight:800;
-    color:var(--text);
+
+.badge-warning { border-color: rgba(255,210,50,.5); color: #ffd232; }   /* Chờ xác nhận */
+.badge-info    { border-color: rgba(79,140,255,.5); color: #4f8cff; }   /* Đang giao */
+.badge-success { border-color: rgba(33,196,122,.5); color: #21c47a; }   /* Hoàn thành */
+.badge-danger  { border-color: rgba(255,90,106,.5); color: #ff5a6a; }   /* Đã hủy */
+
+
+/* ==================== SELECT DROPDOWN ==================== */
+
+
+/* Style cho select giống input */
+select.input {
+    appearance: none;
+    -webkit-appearance: none;
+    cursor: pointer;
 }
 
-.pos-pay-btn{
-    width:100%;
-    height:48px;
-    font-size:16px;
+
+/* ==================== TOAST THÔNG BÁO ==================== */
+
+
+/* Toast hiển thị ở góc trên bên phải, tự ẩn sau 3 giây */
+.toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+    padding: 14px 24px;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 14px;
+    box-shadow: 0 8px 32px rgba(0,0,0,.4);
+    transition: opacity 0.3s, transform 0.3s;   /* animation mượt khi ẩn */
+    display: block;
+    max-width: 400px;
 }
 
-@media (max-width: 1100px){
-    .pos-layout{
-        grid-template-columns: 1fr;
-    }
 
-    .pos-filter-grid{
-        grid-template-columns: repeat(2, 1fr);
-    }
+/* Toast thành công – viền xanh lá */
+.toast-success {
+    background: rgba(33, 196, 122, 0.15);
+    border: 1px solid rgba(33, 196, 122, 0.5);
+    color: #21c47a;
 }
 
-@media (max-width: 700px){
-    .pos-filter-grid{
-        grid-template-columns: 1fr;
-    }
 
-    .pos-topbar{
-        flex-direction:column;
-        align-items:stretch;
-    }
-
-    .customer-search{
-        grid-template-columns: 1fr;
-    }
-}
-.waiting-orders{
-    display:flex;
-    gap:10px;
-    flex-wrap:wrap;
+/* Toast lỗi – viền đỏ */
+.toast-error {
+    background: rgba(255, 90, 106, 0.15);
+    border: 1px solid rgba(255, 90, 106, 0.5);
+    color: #ff5a6a;
 }
 
-.waiting-order-item{
-    min-width:140px;
-    padding:12px;
-    border:1px solid var(--line);
-    border-radius:14px;
-    text-decoration:none;
-    color:var(--text);
-    background:#fff;
-    display:flex;
-    flex-direction:column;
-    gap:6px;
-}
-
-.waiting-order-item.active{
-    border-color:var(--primary);
-    background:#f3f7ff;
-}
-
-.waiting-order-code{
-    font-weight:700;
-    font-size:14px;
-}
-
-.waiting-order-time{
-    font-size:13px;
-    color:#d97706;
-    font-weight:600;
-}
-.form-card{
-    max-width:900px;
-    margin:auto;
-}
-
-.form-title{
-    margin-bottom:20px;
-    font-size:22px;
-}
-
-.product-form{
-    display:flex;
-    flex-direction:column;
-    gap:20px;
-}
-
-.form-grid{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:20px;
-}
-
-.form-group{
-    display:flex;
-    flex-direction:column;
-    gap:6px;
-}
-
-.form-group.full{
-    grid-column:1 / -1;
-}
-
-.input{
-    padding:10px;
-    border:1px solid #ddd;
-    border-radius:6px;
-    font-size:14px;
-}
-
-.input:focus{
-    outline:none;
-    border-color:#2563eb;
-}
-
-.form-actions{
-    display:flex;
-    gap:10px;
-}
-
-.btn{
-    padding:10px 16px;
-    border:none;
-    border-radius:6px;
-    background:#eee;
-    cursor:pointer;
-}
-
-.btn.primary{
-    background:#2563eb;
-    color:white;
-}
-
-.btn:hover{
-    opacity:0.9;
-}
-.pagination{
-    margin-top:15px;
-    display:flex;
-    gap:8px;
-    align-items:center;
-    flex-wrap:wrap;
-}
