@@ -1,21 +1,24 @@
 <!--
-    dashboard.html – Trang Dashboard tổng quan (Admin).
+   dashboard.html – Trang Dashboard tổng quan (Admin).
 
-    Gồm:
-      1. 4 card thống kê chính
-      2. 4 card trạng thái đơn hàng
-      3. Biểu đồ tròn trạng thái đơn (Chart.js)
-      4. Biểu đồ top SP bán chạy (Chart.js)
-      5. Bảng 5 đơn hàng gần nhất
-      6. Nút "Xem thống kê chi tiết" dẫn đến /admin/thong-ke
+
+   Gồm:
+     1. 4 card thống kê chính
+     2. 4 card trạng thái đơn hàng
+     3. Biểu đồ tròn trạng thái đơn (Chart.js)
+     4. Biểu đồ top SP bán chạy (Chart.js)
+     5. Bảng 5 đơn hàng gần nhất
+     6. Nút "Xem thống kê chi tiết" dẫn đến /admin/thong-ke
 -->
 <section xmlns:th="http://www.thymeleaf.org" th:fragment="content">
+
 
     <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
 
-    <!-- ==================== 4 CARD THỐNG KÊ CHÍNH ==================== -->
-    <div class="stats-grid">
+
+    <!-- ==================== 4 CARD THỐNG KÊ CHÍNH + CARD HẾT HÀNG ==================== -->
+    <div class="stats-grid-5">
         <div class="stat-card blue">
             <div class="stat-icon">📦</div>
             <div class="stat-number" th:text="${tongSanPham}">0</div>
@@ -36,7 +39,14 @@
             <div class="stat-number" th:text="${#numbers.formatDecimal(tongDoanhThu, 0, 'COMMA', 0, 'POINT')} + ' ₫'">0 ₫</div>
             <div class="stat-label">Tổng doanh thu</div>
         </div>
+        <!-- CARD MỚI: Sản phẩm hết hàng -->
+        <div class="stat-card red">
+            <div class="stat-icon">⚠️</div>
+            <div class="stat-number" th:text="${soSanPhamHetHang}">0</div>
+            <div class="stat-label">SP hết / sắp hết hàng</div>
+        </div>
     </div>
+
 
     <!-- ==================== 4 CARD TRẠNG THÁI ĐƠN ==================== -->
     <div class="stats-grid" style="margin-top:14px;">
@@ -62,8 +72,10 @@
         </div>
     </div>
 
+
     <!-- ==================== BIỂU ĐỒ ==================== -->
     <div style="display:grid; grid-template-columns: 1fr 1fr; gap:14px; margin-top:14px;">
+
 
         <!-- Biểu đồ tròn: Trạng thái đơn hàng -->
         <div class="card">
@@ -72,6 +84,7 @@
                 <canvas id="dashPieChart"></canvas>
             </div>
         </div>
+
 
         <!-- Biểu đồ: Top sản phẩm bán chạy -->
         <div class="card">
@@ -82,6 +95,76 @@
         </div>
     </div>
 
+
+    <!-- ==================== BÁO CÁO SẢN PHẨM HẾT HÀNG ==================== -->
+    <div class="card" style="margin-top:14px;" th:if="${soSanPhamHetHang > 0}">
+        <h3 style="margin-top:0">⚠️ Sản phẩm hết hàng / sắp hết hàng
+            <span style="font-weight:400; font-size:14px; color:var(--muted);">(ngưỡng &lt; <span th:text="${lowStockThreshold}">10</span> sản phẩm)</span>
+        </h3>
+
+
+        <!-- Summary cards -->
+        <div class="lowstock-summary">
+            <div class="lowstock-card lowstock-danger">
+                <div class="num" th:text="${soHetHang}">0</div>
+                <div class="label">🔴 Hết hàng (= 0)</div>
+            </div>
+            <div class="lowstock-card lowstock-warn">
+                <div class="num" th:text="${soSapHet}">0</div>
+                <div class="label">🟡 Sắp hết (1-9)</div>
+            </div>
+            <div class="lowstock-card lowstock-total">
+                <div class="num" th:text="${soSanPhamHetHang}">0</div>
+                <div class="label">📊 Tổng cảnh báo</div>
+            </div>
+        </div>
+
+
+        <!-- Detail table -->
+        <table class="table">
+            <thead>
+            <tr>
+                <th>STT</th>
+                <th>Mã SP</th>
+                <th>Tên sản phẩm</th>
+                <th>Màu sắc</th>
+                <th>Kích cỡ</th>
+                <th>Tồn kho</th>
+                <th>Giá bán</th>
+                <th>Trạng thái</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="item, iterStat : ${danhSachHetHang}">
+                <td th:text="${iterStat.index + 1}"></td>
+                <td th:text="${item.maSanPham}"></td>
+                <td style="font-weight:600" th:text="${item.tenSanPham}"></td>
+                <td th:text="${item.tenMauSac}"></td>
+                <td th:text="${item.tenKichCo}"></td>
+                <td>
+                   <span th:classappend="${item.soLuong == null or item.soLuong <= 0} ? 'stock-qty-zero' : 'stock-qty-low'"
+                         th:text="${item.soLuong != null ? item.soLuong : 0}">0</span>
+                </td>
+                <td th:text="${item.giaBan != null ? #numbers.formatDecimal(item.giaBan, 0, 'COMMA', 0, 'POINT') + ' ₫' : '-'}"></td>
+                <td>
+                    <span th:if="${item.soLuong == null or item.soLuong <= 0}" class="stock-danger">🔴 Hết hàng</span>
+                    <span th:if="${item.soLuong != null and item.soLuong > 0}" class="stock-warning">🟡 Sắp hết</span>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+
+    <!-- Thông báo khi không có SP hết hàng -->
+    <div class="card" style="margin-top:14px;" th:if="${soSanPhamHetHang == 0}">
+        <h3 style="margin-top:0">✅ Tồn kho ổn định</h3>
+        <p style="color:var(--muted); text-align:center; padding:20px 0;">
+            Tất cả sản phẩm đều có tồn kho ≥ <span th:text="${lowStockThreshold}">10</span>. Không có cảnh báo hết hàng.
+        </p>
+    </div>
+
+
     <!-- ==================== BẢNG 5 ĐƠN HÀNG GẦN NHẤT ==================== -->
     <div class="card" style="margin-top:14px;">
         <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -89,6 +172,7 @@
             <!-- Nút dẫn đến trang thống kê chi tiết -->
             <a th:href="@{/admin/thong-ke}" class="btn primary small">📊 Xem thống kê chi tiết →</a>
         </div>
+
 
         <table class="table">
             <thead>
@@ -106,16 +190,16 @@
                 <td th:text="${dh.khachHang != null ? dh.khachHang.hoTen : 'Khách Vãng Lai'}"></td>
                 <td th:text="${dh.tongTien != null ? #numbers.formatDecimal(dh.tongTien, 0, 'COMMA', 0, 'POINT') + ' ₫' : '0 ₫'}"></td>
                 <td>
-                    <span class="badge"
-                          th:classappend="${dh.trangThaiId == 1 ? ' badge-warning' :
-                                           dh.trangThaiId == 2 ? ' badge-info' :
-                                           dh.trangThaiId == 3 ? ' badge-success' :
-                                           dh.trangThaiId == 4 ? ' badge-danger' : ''}"
-                          th:text="${dh.trangThaiId == 1 ? 'Chờ xác nhận' :
-                                    dh.trangThaiId == 2 ? 'Đang giao' :
-                                    dh.trangThaiId == 3 ? 'Hoàn thành' :
-                                    dh.trangThaiId == 4 ? 'Đã hủy' : 'Không rõ'}">
-                    </span>
+                   <span class="badge"
+                         th:classappend="${dh.trangThaiId == 1 ? ' badge-warning' :
+                                          dh.trangThaiId == 2 ? ' badge-info' :
+                                          dh.trangThaiId == 3 ? ' badge-success' :
+                                          dh.trangThaiId == 4 ? ' badge-danger' : ''}"
+                         th:text="${dh.trangThaiId == 1 ? 'Chờ xác nhận' :
+                                   dh.trangThaiId == 2 ? 'Đang giao' :
+                                   dh.trangThaiId == 3 ? 'Hoàn thành' :
+                                   dh.trangThaiId == 4 ? 'Đã hủy' : 'Không rõ'}">
+                   </span>
                 </td>
                 <td th:text="${dh.ngayTao != null ? #temporals.format(dh.ngayTao, 'dd/MM/yyyy HH:mm') : '-'}"></td>
             </tr>
@@ -126,6 +210,7 @@
         </table>
     </div>
 
+
     <!-- ==================== CHART.JS SCRIPTS ==================== -->
     <script th:inline="javascript">
         // Dữ liệu từ Controller
@@ -134,8 +219,10 @@
         const hoanThanh  = /*[[${donHoanThanh}]]*/ 0;
         const daHuy      = /*[[${donDaHuy}]]*/ 0;
 
+
         const topSPLabels = /*[[${topSPLabels}]]*/ [];
         const topSPValues = /*[[${topSPValues}]]*/ [];
+
 
         // --- Biểu đồ Doughnut: Trạng thái đơn hàng ---
         new Chart(document.getElementById('dashPieChart'), {
@@ -170,6 +257,7 @@
                 }
             }
         });
+
 
         // --- Biểu đồ Bar ngang: Top sản phẩm bán chạy ---
         if (topSPLabels.length > 0) {
@@ -214,4 +302,8 @@
         }
     </script>
 
+
 </section>
+
+
+
