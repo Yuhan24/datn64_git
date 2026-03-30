@@ -58,7 +58,7 @@ public class DonHang {
     private String ghiChu;
 
 
-    @Column(name = "loai_don")//1 = OFFLINE / 0 = tại quầy
+    @Column(name = "loai_don")//1 = OFFLINE / 0 = ONLINE
     private Integer loaiDon;
 
     @Column(name = "phuong_thuc_thanh_toan", length = 50)

@@ -12,6 +12,8 @@ public interface DonHangChiTietADRepository extends JpaRepository<DonHangChiTiet
     List<DonHangChiTiet> findByDonHang_Id(Integer donHangId);
     Optional<DonHangChiTiet> findByDonHang_IdAndSanPhamChiTiet_Id(Integer donHangId, Integer spctId);
 
+    void deleteByDonHang_Id(Integer id);
+
 
 
 }

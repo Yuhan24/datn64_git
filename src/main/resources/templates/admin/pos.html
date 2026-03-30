@@ -22,11 +22,29 @@
             </form>
 
             <div class="pos-top-actions">
+
+                <!-- Tạo hóa đơn -->
                 <form th:action="@{/admin/pos/create-order}" method="post" style="display:inline;">
                     <input type="hidden" th:if="${_csrf != null}"
                            th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-                    <button type="submit" class="btn danger">Tạo hóa đơn mới</button>
+                    <button type="submit" class="btn primary">Tạo hóa đơn mới</button>
                 </form>
+
+                <!-- Xóa hóa đơn -->
+                <form th:if="${selectedDonHangId != null}"
+                      th:action="@{/admin/pos/delete-order/{id}(id=${selectedDonHangId})}"
+                      method="post"
+                      style="display:inline;"
+                    >
+
+                    <input type="hidden" th:if="${_csrf != null}"
+                           th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
+                    <button type="submit" class="btn danger">
+                        🗑 Xóa hóa đơn
+                    </button>
+                </form>
+
             </div>
         </div>
         <div class="pos-layout">
@@ -77,11 +95,30 @@
                                 <td th:text="${ct.sanPhamChiTiet.sanPham.tenSanPham}"></td>
                                 <td th:text="${ct.sanPhamChiTiet.mauSac.tenMau}"></td>
                                 <td th:text="${ct.sanPhamChiTiet.kichCo.tenKichCo}"></td>
-                                <td th:text="${ct.soLuong}"></td>
+                                <td>
+                                    <div class="qty-spin">
+                                        <input type="text" class="qty-input" th:value="${ct.soLuong}" readonly>
+
+                                        <div class="qty-arrows">
+                                            <form th:action="@{'/admin/pos/increase-quantity/' + ${ct.id}}" method="post">
+                                                <input type="hidden" th:if="${_csrf != null}"
+                                                       th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                                <button type="submit" class="arrow-btn up">▲</button>
+                                            </form>
+
+                                            <form th:action="@{'/admin/pos/decrease-quantity/' + ${ct.id}}" method="post">
+                                                <input type="hidden" th:if="${_csrf != null}"
+                                                       th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                                <button type="submit" class="arrow-btn down">▼</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </td>
                                 <td th:text="${#numbers.formatDecimal(ct.giaTaiThoiDiem, 0, 'COMMA', 0, 'POINT')} + ' đ'"></td>
-                                <td th:text="${ct.giaTaiThoiDiem != null && ct.soLuong != null
-    ? #numbers.formatDecimal(ct.giaTaiThoiDiem * ct.soLuong, 0, 'COMMA', 0, 'POINT') + ' đ'
-    : '0 đ'}">
+<!--                                <td th:text="${ct.giaTaiThoiDiem != null && ct.soLuong != null-->
+<!--    ? #numbers.formatDecimal(ct.giaTaiThoiDiem * ct.soLuong, 0, 'COMMA', 0, 'POINT') + ' đ'-->
+<!--    : '0 đ'}">-->
+                                <td th:text="${#numbers.formatDecimal(ct.thanhTien, 0, 'COMMA', 0, 'POINT')} + ' đ'"></td>
                                 </td>                          <td>
                                     <form th:action="@{'/admin/pos/remove-item/' + ${ct.id}}" method="post" style="display:inline;">
                                         <input type="hidden" th:if="${_csrf != null}"
@@ -199,11 +236,22 @@
                     <div class="right-block">
                         <label>Khách hàng</label>
 
+                        <div th:if="${selectedDonHangId == null}" class="alert error" style="margin-bottom:10px;">
+                            Vui lòng chọn hoặc tạo hóa đơn trước khi thêm khách hàng
+                        </div>
+
                         <form th:action="@{/admin/pos/find-customer}" method="get" class="customer-search">
                             <input type="hidden" name="donHangId" th:value="${selectedDonHangId}">
-                            <input type="text" class="input" name="keyword"
-                                   placeholder="Nhập số điện thoại khách hàng">
-                            <button class="btn success" type="submit">Tìm</button>
+                            <input type="text"
+                                   class="input"
+                                   name="keyword"
+                                   placeholder="Nhập số điện thoại khách hàng"
+                                   th:disabled="${selectedDonHangId == null}">
+                            <button class="btn success"
+                                    type="submit"
+                                    th:disabled="${selectedDonHangId == null}">
+                                Thêm
+                            </button>
                         </form>
 
                         <div class="customer-box" th:if="${selectedCustomer != null}">
@@ -215,7 +263,11 @@
                             <input type="hidden" name="donHangId" th:value="${selectedDonHangId}">
                             <input type="hidden" th:if="${_csrf != null}"
                                    th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-                            <button class="btn" type="submit">Chọn khách vãng lai</button>
+                            <button class="btn"
+                                    type="submit"
+                                    th:disabled="${selectedDonHangId == null}">
+                                Chọn khách vãng lai
+                            </button>
                         </form>
                     </div>
 
@@ -231,11 +283,22 @@
                         </div>
                     </div>
 
-                    <div class="right-block">
-                        <select class="input">
-                            <option>Chọn voucher</option>
-                        </select>
-                    </div>
+                    <form th:action="@{/admin/pos/apply-voucher}" method="post">
+                        <div class="right-block">
+                            <label>Mã khuyến mãi</label>
+                            <div class="customer-search">
+                                <input type="text" class="input" name="maKhuyenMai" placeholder="Nhập mã khuyến mãi">
+                                <button class="btn primary" type="submit"
+                                        th:disabled="${selectedDonHangId == null}">
+                                    Áp dụng
+                                </button>
+                            </div>
+                        </div>
+
+                        <input type="hidden" name="donHangId" th:value="${selectedDonHangId}">
+                        <input type="hidden" th:if="${_csrf != null}"
+                               th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                    </form>
 
                     <div class="right-block total-pay"
                          th:text="${donHang != null && donHang.tongTien != null
@@ -244,31 +307,61 @@
                         KHÁCH PHẢI TRẢ: 0 VND
                     </div>
 
-                    <form th:action="@{/admin/pos/pay}" method="post">
+                    <form th:action="@{/admin/pos/pay}" method="post"
+                          class="confirm-form"
+                          data-message="Xác nhận thanh toán hóa đơn này?">
                         <div class="right-block">
                             <label>Phương thức thanh toán:</label>
-                            <select class="input" name="phuongThucThanhToan">
+                            <select id="phuongThucThanhToan" class="input" name="phuongThucThanhToan">
                                 <option value="TIEN_MAT">Tiền mặt</option>
                                 <option value="CHUYEN_KHOAN">Chuyển khoản</option>
                             </select>
                         </div>
 
-                        <div class="right-block">
-                            <label>Khách thanh toán:</label>
-                            <input type="number"
-                                   id="tienKhachDua"
-                                   name="tienKhachDua"
-                                   class="input"
-                                   placeholder="Nhập số tiền khách đưa">
-
-                            <input type="hidden"
-                                   id="tongTienValue"
-                                   th:value="${donHang != null && donHang.tongTien != null ? donHang.tongTien : 0}">
+                        <div id="cashSection">
+                            <div class="right-block">
+                                <label>Khách thanh toán:</label>
+                                <input type="number"
+                                       id="tienKhachDua"
+                                       name="tienKhachDua"
+                                       class="input"
+                                       placeholder="Nhập số tiền khách đưa">
+                            </div>
 
                             <div class="right-block money-line">
                                 <span>Tiền thừa trả khách:</span>
                                 <strong id="tienThua">0 VND</strong>
                             </div>
+                        </div>
+
+                        <div id="bankSection" style="display:none;">
+                            <div class="right-block">
+                                <label>Số tiền cần chuyển:</label>
+                                <strong th:text="${donHang != null && donHang.tongTien != null
+                ? #numbers.formatDecimal(donHang.tongTien, 0, 'COMMA', 0, 'POINT') + ' đ'
+                : '0 VND'}">
+                                    0 VND
+                                </strong>
+                            </div>
+
+                            <div class="right-block">
+                                <label>Nội dung chuyển khoản:</label>
+                                <strong th:text="${donHang != null ? donHang.maDonHang : ''}"></strong>
+                            </div>
+                        </div>
+
+                        <input type="hidden"
+                               id="tongTienValue"
+                               th:value="${donHang != null && donHang.tongTien != null ? donHang.tongTien : 0}">
+
+                        <div class="money-line">
+                            <span>Tiền giảm:</span>
+                            <strong th:text="${donHang != null && donHang.tienGiam != null
+            ? #numbers.formatDecimal(donHang.tienGiam, 0, 'COMMA', 0, 'POINT') + ' đ'
+            : '0 VND'}">
+                                0 VND
+                            </strong>
+                        </div>
 
                         <input type="hidden" name="donHangId" th:value="${selectedDonHangId}">
                         <input type="hidden" th:if="${_csrf != null}"
@@ -282,10 +375,24 @@
                     </form>
 
                 </div>
+
             </div>
 
         </div>
     </div>
+
+    <div id="confirmModal" class="confirm-modal">
+        <div class="confirm-box">
+            <h3>Xác nhận</h3>
+            <p id="confirmMessage">Bạn có chắc chắn muốn thanh toán?</p>
+
+            <div class="confirm-actions">
+                <button type="button" class="btn" id="btnCancelConfirm">Hủy</button>
+                <button type="button" class="btn danger" id="btnOkConfirm">Thanh toán</button>
+            </div>
+        </div>
+    </div>
+
 
     <script th:inline="javascript">
         function startCountdown() {
@@ -306,8 +413,7 @@
                     const diff = expireAt - now;
 
                     if (diff <= 0) {
-                        countdownEl.innerText = 'Hết hạn';
-                        countdownEl.style.color = '#dc2626';
+                        item.style.display = "none";
                         return;
                     }
 
@@ -366,6 +472,308 @@
 
         });
     </script>
+    <script>
+        const phuongThuc = document.getElementById("phuongThucThanhToan");
+        const cashSection = document.getElementById("cashSection");
+        const bankSection = document.getElementById("bankSection");
+
+        function togglePaymentUI() {
+            if (!phuongThuc) return;
+
+            if (phuongThuc.value === "CHUYEN_KHOAN") {
+                cashSection.style.display = "none";
+                bankSection.style.display = "block";
+            } else {
+                cashSection.style.display = "block";
+                bankSection.style.display = "none";
+            }
+        }
+
+        if (phuongThuc) {
+            phuongThuc.addEventListener("change", togglePaymentUI);
+            togglePaymentUI();
+        }
+    </script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function(){
+
+            const modal = document.getElementById("confirmModal");
+            const confirmMessage = document.getElementById("confirmMessage");
+            const btnOk = document.getElementById("btnOkConfirm");
+            const btnCancel = document.getElementById("btnCancelConfirm");
+
+            let formToSubmit = null;
+
+            document.querySelectorAll(".confirm-form").forEach(form=>{
+                form.addEventListener("submit", function(e){
+                    e.preventDefault();
+                    formToSubmit = form;
+                    confirmMessage.textContent = form.dataset.message || "Bạn có chắc chắn?";
+                    modal.classList.add("show");
+                });
+            });
+
+            btnOk.addEventListener("click", function(){
+                if(formToSubmit){
+                    formToSubmit.submit();
+                }
+            });
+
+            btnCancel.addEventListener("click", function(){
+                modal.classList.remove("show");
+                formToSubmit = null;
+            });
+
+            modal.addEventListener("click", function(e){
+                if(e.target === modal){
+                    modal.classList.remove("show");
+                    formToSubmit = null;
+                }
+            });
+
+        });
+    </script>
+
+    <!-- ===== CONFIRM DELETE ORDER MODAL ===== -->
+    <div id="deleteConfirmModal" class="delete-confirm-modal">
+        <div class="delete-confirm-box">
+
+            <div class="delete-confirm-header">
+                <div class="delete-confirm-icon">🗑</div>
+                <div>
+                    <h3>Xóa hóa đơn</h3>
+                    <p>Bạn có chắc muốn xóa hóa đơn này không?</p>
+                </div>
+            </div>
+
+            <div class="delete-confirm-actions">
+                <button type="button" class="btn" id="deleteCancelBtn">Hủy</button>
+                <button type="button" class="btn danger" id="deleteOkBtn">Xóa hóa đơn</button>
+            </div>
+
+        </div>
+    </div>
+
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function(){
+
+            let deleteForm = null;
+
+            const modal = document.getElementById("deleteConfirmModal");
+            const btnOk = document.getElementById("deleteOkBtn");
+            const btnCancel = document.getElementById("deleteCancelBtn");
+
+            /* bắt form xóa hóa đơn */
+            document.querySelectorAll("form[action*='delete-order']").forEach(form => {
+
+                form.addEventListener("submit", function(e){
+                    e.preventDefault();
+                    deleteForm = form;
+                    modal.classList.add("show");
+                });
+
+            });
+
+            btnOk.onclick = function(){
+                if(deleteForm){
+                    deleteForm.submit();
+                }
+            }
+
+            btnCancel.onclick = function(){
+                modal.classList.remove("show");
+                deleteForm = null;
+            }
+
+            modal.onclick = function(e){
+                if(e.target === modal){
+                    modal.classList.remove("show");
+                }
+            }
+
+        });
+    </script>
+
+
+    <style>
+
+        .delete-confirm-modal{
+            display:none;
+            position:fixed;
+            inset:0;
+            background:rgba(0,0,0,0.45);
+            z-index:99999;
+            justify-content:center;
+            align-items:center;
+        }
+
+        .delete-confirm-modal.show{
+            display:flex;
+        }
+
+        .delete-confirm-box{
+            width:100%;
+            max-width:420px;
+            background:#fff;
+            border-radius:14px;
+            padding:26px;
+            box-shadow:0 20px 50px rgba(0,0,0,0.25);
+            animation:deletePopup .18s ease;
+        }
+
+        @keyframes deletePopup{
+            from{
+                opacity:0;
+                transform:scale(.96);
+            }
+            to{
+                opacity:1;
+                transform:scale(1);
+            }
+        }
+
+        .delete-confirm-header{
+            display:flex;
+            gap:14px;
+            align-items:flex-start;
+        }
+
+        .delete-confirm-icon{
+            width:46px;
+            height:46px;
+            background:#fee2e2;
+            color:#dc2626;
+            border-radius:50%;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            font-size:22px;
+        }
+
+        .delete-confirm-header h3{
+            margin:0;
+            font-size:18px;
+        }
+
+        .delete-confirm-header p{
+            margin:4px 0 0 0;
+            color:#6b7280;
+        }
+
+        .delete-confirm-actions{
+            margin-top:22px;
+            display:flex;
+            justify-content:flex-end;
+            gap:10px;
+        }
+
+    </style>
+
+
+    <style>
+        .confirm-modal{
+            display:none;
+            position:fixed;
+            inset:0;
+            background:rgba(0,0,0,0.45);
+            z-index:9999;
+            justify-content:center;
+            align-items:center;
+        }
+
+        .confirm-modal.show{
+            display:flex;
+        }
+
+        .confirm-box{
+            width:100%;
+            max-width:420px;
+            background:#fff;
+            border-radius:12px;
+            padding:24px;
+            box-shadow:0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .confirm-actions{
+            display:flex;
+            justify-content:flex-end;
+            gap:10px;
+            margin-top:20px;
+        }
+        .qty-spin{
+            display:inline-flex;
+            align-items:stretch;
+            border:1px solid #d1d5db;
+            border-radius:6px;
+            overflow:hidden;
+            background:#fff;
+        }
+
+        .qty-input{
+            width:44px;
+            border:none;
+            outline:none;
+            text-align:center;
+            font-size:14px;
+            font-weight:600;
+            color:#111827;
+            background:#f9fafb;
+        }
+
+        .qty-arrows{
+            display:flex;
+            flex-direction:column;
+            width:20px;
+            border-left:1px solid #d1d5db;
+        }
+
+        .qty-arrows form{
+            margin:0;
+            height:50%;
+        }
+
+        .arrow-btn{
+            width:100%;
+            height:100%;
+            border:none;
+            background:#f3f4f6;
+            color:#6b7280;
+            font-size:9px;
+            cursor:pointer;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            padding:0;
+            line-height:1;
+        }
+
+        .arrow-btn.up{
+            border-bottom:1px solid #d1d5db;
+        }
+
+        .arrow-btn:hover{
+            background:#e5e7eb;
+            color:#111827;
+        }
+
+
+
+
+        .qty-input{
+            width:38px;
+            height:32px;
+        }
+
+        .qty-arrows{
+            width:18px;
+        }
+
+        .arrow-btn{
+            font-size:8px;
+        }
+    </style>
 </section>
 
 </body>

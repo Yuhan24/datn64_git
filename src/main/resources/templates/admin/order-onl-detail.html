@@ -1,0 +1,655 @@
+<section xmlns:th="http://www.thymeleaf.org" th:fragment="content">
+    <div class="order-detail-page">
+
+        <div th:if="${success}" class="alert success" th:text="${success}"></div>
+        <div th:if="${error}" class="alert error" th:text="${error}"></div>
+
+        <div class="order-card">
+            <!-- Header -->
+            <div class="order-header">
+                <div>
+                    <h2>Chi tiết đơn hàng</h2>
+                </div>
+                <div class="order-code" th:text="${donHang.maDonHang}">INVMMJZV8Q2BM</div>
+            </div>
+
+            <!-- Customer info -->
+            <div class="order-section">
+                <h3 class="section-title">Thông tin khách hàng</h3>
+
+                <div class="info-grid">
+                    <div class="info-item">
+                        <label>Họ và tên</label>
+                        <div th:text="${donHang.tenNguoiNhan != null ? donHang.tenNguoiNhan : '-'}"></div>
+                    </div>
+
+                    <div class="info-item">
+                        <label>Số điện thoại</label>
+                        <div th:text="${donHang.soDienThoai != null ? donHang.soDienThoai : '-'}"></div>
+                    </div>
+
+                    <div class="info-item">
+                        <label>Địa chỉ</label>
+                        <div th:text="${donHang.diaChiGiaoHang != null ? donHang.diaChiGiaoHang : '-'}"></div>
+                    </div>
+
+                    <div class="info-item">
+                        <label>Ngày đặt hàng</label>
+                        <div th:text="${donHang.ngayTao != null ? #temporals.format(donHang.ngayTao, 'HH:mm dd/MM/yyyy') : '-'}"></div>
+                    </div>
+
+                    <div class="info-item full">
+                        <label>Trạng thái đơn hàng</label>
+                        <div>
+                            <span class="status-badge waiting"
+                                  th:if="${donHang.trangThaiId == 1}">Chờ xác nhận</span>
+                            <span class="status-badge confirmed"
+                                  th:if="${donHang.trangThaiId == 2}">Đang giao</span>
+                            <span class="status-badge completed"
+                                  th:if="${donHang.trangThaiId == 3}">Hoàn thành</span>
+                            <span class="status-badge canceled"
+                                  th:if="${donHang.trangThaiId == 4}">Đã hủy</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Progress -->
+            <div class="progress-section">
+                <div class="progress-wrap">
+                    <div class="progress-line"></div>
+
+                    <div class="progress-step"
+                         th:classappend="${donHang.trangThaiId >= 1 ? ' active current' : ''}">
+                        <div class="step-circle">1</div>
+                        <div class="step-label">Chờ xác nhận</div>
+                    </div>
+
+                    <div class="progress-step"
+                         th:classappend="${donHang.trangThaiId >= 2 ? ' active' : ''}">
+                        <div class="step-circle">2</div>
+                        <div class="step-label">Đã xác nhận</div>
+                    </div>
+
+                    <div class="progress-step"
+                         th:classappend="${donHang.trangThaiId >= 2 ? ' active current' : ''}">
+                        <div class="step-circle">3</div>
+                        <div class="step-label">Đang giao hàng</div>
+                    </div>
+
+                    <div class="progress-step"
+                         th:classappend="${donHang.trangThaiId >= 3 ? ' active' : ''}">
+                        <div class="step-circle">4</div>
+                        <div class="step-label">Hoàn thành</div>
+                    </div>
+                </div>
+
+                <div class="action-box">
+                    <!-- Xác nhận -->
+                    <form th:if="${donHang.trangThaiId == 1
+                      and (
+                           donHang.phuongThucThanhToan == 'COD'
+                           or donHang.trangThaiThanhToan == 'DA_THANH_TOAN'
+                      )}"
+                          th:action="@{'/admin/order-onl/' + ${donHang.id} + '/confirm'}"
+                          method="post"
+                          class="confirm-form"
+                          data-message="Xác nhận đơn hàng này?">
+                        <button type="submit" class="action-btn primary">Xác nhận đơn</button>
+                    </form>
+
+                    <!-- Hoàn thành -->
+                    <form th:if="${donHang.trangThaiId == 2
+                      and (
+                           donHang.phuongThucThanhToan == 'COD'
+                           or donHang.trangThaiThanhToan == 'DA_THANH_TOAN'
+                      )}"
+                          th:action="@{'/admin/order-onl/' + ${donHang.id} + '/complete'}"
+                          method="post"
+                          class="confirm-form"
+                          data-message="Đánh dấu đơn hàng đã hoàn thành?">
+                        <button type="submit" class="action-btn success">Hoàn thành</button>
+                    </form>
+
+                    <!-- Hủy -->
+                    <form th:if="${donHang.trangThaiId != 3 and donHang.trangThaiId != 4}"
+                          th:action="@{'/admin/order-onl/' + ${donHang.id} + '/cancel'}"
+                          method="post"
+                          class="confirm-form"
+                          data-message="Bạn chắc muốn hủy đơn này?">
+                        <button type="submit" class="action-btn outline-danger">✕ Hủy đơn hàng</button>
+                    </form>
+
+                    <a th:href="@{/admin/order-onl}" class="action-btn secondary">Quay lại</a>
+                </div>
+
+                <!-- Note box -->
+                <div class="status-note" th:if="${donHang.trangThaiId == 1}">
+                    <div class="note-title">Trạng thái hiện tại: Chờ xác nhận</div>
+                    <div class="note-desc">Đơn hàng đang chờ được xác nhận. Số lượng sản phẩm chưa được trừ.</div>
+                </div>
+
+                <div class="status-note" th:if="${donHang.trangThaiId == 2}">
+                    <div class="note-title">Trạng thái hiện tại: Đang giao</div>
+                    <div class="note-desc">Đơn hàng đã được xác nhận và đang trong quá trình giao đến khách hàng.</div>
+                </div>
+
+                <div class="status-note" th:if="${donHang.trangThaiId == 3}">
+                    <div class="note-title">Trạng thái hiện tại: Hoàn thành</div>
+                    <div class="note-desc">Đơn hàng đã hoàn tất.</div>
+                </div>
+
+                <div class="status-note cancel" th:if="${donHang.trangThaiId == 4}">
+                    <div class="note-title">Trạng thái hiện tại: Đã hủy</div>
+                    <div class="note-desc">Đơn hàng này đã bị hủy.</div>
+                </div>
+            </div>
+
+            <!-- Extra info -->
+            <div class="extra-info-grid">
+                <div class="extra-item">
+                    <label>Thanh toán</label>
+                    <div th:text="${donHang.trangThaiThanhToan != null ? donHang.trangThaiThanhToan : '-'}"></div>
+                </div>
+
+                <div class="extra-item">
+                    <label>Phương thức thanh toán</label>
+                    <div th:text="${donHang.phuongThucThanhToan != null ? donHang.phuongThucThanhToan : '-'}"></div>
+                </div>
+
+                <div class="extra-item">
+                    <label>Khuyến mãi</label>
+                    <div th:text="${donHang.khuyenMai != null ? donHang.khuyenMai.tenKhuyenMai : '-'}"></div>
+                </div>
+            </div>
+
+            <!-- Product table -->
+            <div class="product-section">
+                <h3 class="section-title">Các sản phẩm</h3>
+
+                <div class="table-wrap">
+                    <table class="order-table">
+                        <thead>
+                        <tr>
+                            <th>Sản phẩm</th>
+                            <th>Số lượng</th>
+                            <th>Màu sắc</th>
+                            <th>Size</th>
+                            <th>Giá bán</th>
+                            <th>Thành tiền</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="ct : ${chiTietList}">
+                            <td>
+                                <div class="product-name" th:text="${ct.sanPhamChiTiet.sanPham.tenSanPham}"></div>
+                            </td>
+                            <td th:text="${ct.soLuong}"></td>
+                            <td th:text="${ct.sanPhamChiTiet.mauSac.tenMau}"></td>
+                            <td th:text="${ct.sanPhamChiTiet.kichCo.tenKichCo}"></td>
+                            <td th:text="${ct.giaTaiThoiDiem != null ? #numbers.formatDecimal(ct.giaTaiThoiDiem,0,'COMMA',0,'POINT') + ' đ' : '0 đ'}"></td>
+                            <td class="price-strong"
+                                th:text="${ct.thanhTien != null ? #numbers.formatDecimal(ct.thanhTien,0,'COMMA',0,'POINT') + ' đ' : '0 đ'}"></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Summary -->
+            <div class="summary-box">
+                <div class="summary-row">
+                    <span>Tiền giảm</span>
+                    <span th:text="${donHang.tienGiam != null ? #numbers.formatDecimal(donHang.tienGiam,0,'COMMA',0,'POINT') + ' đ' : '0 đ'}"></span>
+                </div>
+                <div class="summary-row total">
+                    <span>Tổng tiền</span>
+                    <span th:text="${donHang.tongTien != null ? #numbers.formatDecimal(donHang.tongTien,0,'COMMA',0,'POINT') + ' đ' : '0 đ'}"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal confirm -->
+    <div id="confirmModal" class="confirm-modal">
+        <div class="confirm-box">
+            <h3>Xác nhận thao tác</h3>
+            <p id="confirmMessage">Bạn có chắc chắn muốn thực hiện thao tác này?</p>
+            <div class="confirm-actions">
+                <button type="button" class="action-btn secondary" id="btnCancelConfirm">Hủy</button>
+                <button type="button" class="action-btn outline-danger" id="btnOkConfirm">Đồng ý</button>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .order-detail-page {
+            padding: 24px;
+            background: #f3f4f6;
+        }
+
+        .order-card {
+            background: #fff;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 6px 24px rgba(15, 23, 42, 0.08);
+            border: 1px solid #e5e7eb;
+        }
+
+        .order-header {
+            background: #1f2947;
+            color: #fff;
+            padding: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        .order-header h2 {
+            margin: 0;
+            font-size: 34px;
+            font-weight: 700;
+        }
+
+        .order-code {
+            background: #ff4d0d;
+            color: #fff;
+            padding: 10px 16px;
+            border-radius: 999px;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .order-section,
+        .progress-section,
+        .product-section {
+            padding: 28px 24px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .section-title {
+            margin: 0 0 20px;
+            font-size: 18px;
+            color: #22304d;
+            font-weight: 700;
+        }
+
+        .info-grid,
+        .extra-info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 22px 28px;
+        }
+
+        .info-item.full {
+            grid-column: 1 / -1;
+        }
+
+        .info-item label,
+        .extra-item label {
+            display: block;
+            color: #6b7280;
+            font-size: 14px;
+            margin-bottom: 6px;
+        }
+
+        .info-item div,
+        .extra-item div {
+            color: #0f172a;
+            font-size: 16px;
+            line-height: 1.5;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 14px;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .status-badge.waiting {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-badge.confirmed {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        .status-badge.completed {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status-badge.canceled {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .progress-wrap {
+            position: relative;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 30px;
+        }
+
+        .progress-line {
+            position: absolute;
+            top: 23px;
+            left: 10%;
+            right: 10%;
+            height: 4px;
+            background: #d1d5db;
+            z-index: 1;
+        }
+
+        .progress-step {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            flex: 1;
+        }
+
+        .step-circle {
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            background: #e5e7eb;
+            border: 3px solid #d1d5db;
+            margin: 0 auto 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: #6b7280;
+        }
+
+        .step-label {
+            font-size: 15px;
+            color: #374151;
+        }
+
+        .progress-step.active .step-circle {
+            background: #fff;
+            border-color: #ff4d0d;
+            color: #ff4d0d;
+        }
+
+        .progress-step.current .step-circle {
+            background: #ff4d0d;
+            color: #fff;
+            box-shadow: 0 0 0 6px rgba(255, 77, 13, 0.15);
+        }
+
+        .progress-step.current .step-label {
+            color: #ff4d0d;
+            font-weight: 700;
+        }
+
+        .action-box {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 26px;
+        }
+
+        .action-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 130px;
+            height: 42px;
+            padding: 0 18px;
+            border-radius: 999px;
+            font-size: 15px;
+            font-weight: 600;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .action-btn.primary {
+            background: #2563eb;
+            color: #fff;
+        }
+
+        .action-btn.success {
+            background: #16a34a;
+            color: #fff;
+        }
+
+        .action-btn.secondary {
+            background: #eef2f7;
+            color: #1f2937;
+            border: 1px solid #d1d5db;
+        }
+
+        .action-btn.outline-danger {
+            background: #fff;
+            color: #ef4444;
+            border: 1.5px solid #fca5a5;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-1px);
+            opacity: 0.96;
+        }
+
+        .status-note {
+            border: 1px solid #dbe3ef;
+            background: #f8fafc;
+            border-radius: 10px;
+            padding: 18px;
+        }
+
+        .status-note.cancel {
+            background: #fff1f2;
+            border-color: #fecdd3;
+        }
+
+        .note-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 6px;
+        }
+
+        .note-desc {
+            color: #4b5563;
+            line-height: 1.5;
+        }
+
+        .extra-info-grid {
+            padding: 24px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+        }
+
+        .order-table {
+            width: 100%;
+            border-collapse: collapse;
+            overflow: hidden;
+            border-radius: 12px;
+        }
+
+        .order-table thead th {
+            background: #eef2f7;
+            color: #374151;
+            font-size: 15px;
+            font-weight: 700;
+            padding: 14px 16px;
+            text-align: left;
+        }
+
+        .order-table tbody td {
+            padding: 16px;
+            border-top: 1px solid #e5e7eb;
+            color: #111827;
+            vertical-align: middle;
+        }
+
+        .product-name {
+            font-weight: 600;
+        }
+
+        .price-strong {
+            font-weight: 700;
+            color: #111827;
+        }
+
+        .summary-box {
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            align-items: flex-end;
+        }
+
+        .summary-row {
+            display: flex;
+            gap: 30px;
+            min-width: 280px;
+            justify-content: space-between;
+            font-size: 16px;
+            color: #374151;
+        }
+
+        .summary-row.total {
+            font-size: 22px;
+            font-weight: 700;
+            color: #111827;
+        }
+
+        .confirm-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.45);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .confirm-modal.show {
+            display: flex;
+        }
+
+        .confirm-box {
+            width: 100%;
+            max-width: 420px;
+            background: #fff;
+            border-radius: 14px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            padding: 24px;
+            animation: popupFade .2s ease;
+        }
+
+        .confirm-box h3 {
+            margin: 0 0 12px;
+            font-size: 22px;
+        }
+
+        .confirm-box p {
+            margin: 0 0 20px;
+            color: #444;
+            line-height: 1.5;
+        }
+
+        .confirm-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        @keyframes popupFade {
+            from {
+                opacity: 0;
+                transform: translateY(-10px) scale(0.98);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .order-header,
+            .info-grid,
+            .extra-info-grid {
+                grid-template-columns: 1fr;
+                display: grid;
+            }
+
+            .order-header {
+                display: flex;
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .progress-wrap {
+                gap: 8px;
+            }
+
+            .step-label {
+                font-size: 13px;
+            }
+
+            .summary-box {
+                align-items: stretch;
+            }
+
+            .summary-row {
+                min-width: unset;
+            }
+        }
+    </style>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const modal = document.getElementById("confirmModal");
+            const confirmMessage = document.getElementById("confirmMessage");
+            const btnOk = document.getElementById("btnOkConfirm");
+            const btnCancel = document.getElementById("btnCancelConfirm");
+
+            let formToSubmit = null;
+
+            document.querySelectorAll(".confirm-form").forEach(form => {
+                form.addEventListener("submit", function (e) {
+                    e.preventDefault();
+                    formToSubmit = form;
+                    confirmMessage.textContent = form.dataset.message || "Bạn có chắc chắn?";
+                    modal.classList.add("show");
+                });
+            });
+
+            btnOk.addEventListener("click", function () {
+                if (formToSubmit) {
+                    formToSubmit.submit();
+                }
+            });
+
+            btnCancel.addEventListener("click", function () {
+                modal.classList.remove("show");
+                formToSubmit = null;
+            });
+
+            modal.addEventListener("click", function (e) {
+                if (e.target === modal) {
+                    modal.classList.remove("show");
+                    formToSubmit = null;
+                }
+            });
+        });
+    </script>
+</section>

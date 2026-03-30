@@ -1,0 +1,212 @@
+<!--
+    employee.html – Template quản lý nhân viên (Admin) – Thiết kế mới.
+
+    Tính năng:
+      1. Combobox lọc trạng thái (Hoạt động / Nghỉ việc), ưu tiên Hoạt động
+      2. Nút "Thêm nhân viên" → mở form thêm (ẩn/hiện bằng JS)
+      3. Nút "Sửa" → mở form sửa (cùng form, phân biệt bằng isEdit)
+      4. Toast (thông báo thành công/lỗi) tự ẩn sau 3 giây
+      5. Ở tab "Nghỉ việc" → nút "Khôi phục" thay vì "Nghỉ việc"
+-->
+<section xmlns:th="http://www.thymeleaf.org" th:fragment="content">
+
+    <!-- ==================== TOAST THÔNG BÁO (tự ẩn sau 3 giây) ==================== -->
+    <div th:if="${success}" class="toast toast-success" id="toast" th:text="${success}"></div>
+    <div th:if="${error}" class="toast toast-error" id="toast" th:text="${error}"></div>
+
+    <!-- ==================== THANH CÔNG CỤ (Nút + Combobox) ==================== -->
+    <div class="card" style="margin-bottom:14px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+
+            <!-- Nút thêm nhân viên mới — click sẽ toggle form -->
+            <button class="btn primary" onclick="toggleForm()" id="btnToggleForm">
+                ➕ Thêm nhân viên
+            </button>
+
+            <!-- Combobox lọc trạng thái — thay đổi sẽ tự reload trang -->
+            <div style="display:flex; align-items:center; gap:8px;">
+                <label style="white-space:nowrap;">Trạng thái:</label>
+                <select class="input" style="width:200px;" onchange="filterByStatus(this.value)"
+                        id="statusFilter">
+                    <option value="true"  th:selected="${trangThai == true}">🟢 Hoạt động</option>
+                    <option value="false" th:selected="${trangThai == false}">🔴 Nghỉ việc</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== FORM THÊM / SỬA (ẩn mặc định, hiện khi bấm nút) ==================== -->
+    <div class="card" id="formContainer"
+         th:style="${showForm != null && showForm} ? 'margin-bottom:14px;' : 'display:none; margin-bottom:14px;'">
+
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <h3 style="margin:0;" th:text="${isEdit != null && isEdit} ? '✏️ Sửa nhân viên' : '➕ Thêm nhân viên mới'">
+                Thêm nhân viên mới
+            </h3>
+            <!-- Nút đóng form -->
+            <button class="btn small" onclick="hideForm()" title="Đóng">✕</button>
+        </div>
+
+        <form th:action="${isEdit != null && isEdit}
+                         ? @{'/admin/employee/update/' + ${nhanVien.id}}
+                         : @{/admin/employee/save}"
+              method="post"
+              style="display:grid; grid-template-columns: repeat(3, 1fr); gap:12px;">
+
+            <!-- Mã nhân viên -->
+            <div>
+                <label>Mã nhân viên</label>
+                <input class="input" type="text" name="maNhanVien"
+                       th:value="${nhanVien.maNhanVien}"
+                       placeholder="VD: NV03 (để trống sẽ tự sinh)">
+            </div>
+
+            <!-- Họ tên -->
+            <div>
+                <label>Họ tên <span style="color:var(--danger);">*</span></label>
+                <input class="input" type="text" name="hoTen"
+                       th:value="${nhanVien.hoTen}" required placeholder="Nhập họ tên">
+            </div>
+
+            <!-- Tên đăng nhập -->
+            <div>
+                <label>Tên đăng nhập <span style="color:var(--danger);">*</span></label>
+                <input class="input" type="text" name="tenDangNhap"
+                       th:value="${nhanVien.tenDangNhap}" required placeholder="Unique">
+            </div>
+
+            <!-- Mật khẩu -->
+            <div>
+                <label th:text="${isEdit != null && isEdit} ? 'Mật khẩu mới (để trống = giữ cũ)' : 'Mật khẩu *'">
+                    Mật khẩu
+                </label>
+                <input class="input" type="password" name="matKhau"
+                       placeholder="Nhập mật khẩu"
+                       th:required="${isEdit == null || !isEdit}">
+            </div>
+
+            <!-- Số điện thoại -->
+            <div>
+                <label>Số điện thoại</label>
+                <input class="input" type="text" name="soDienThoai"
+                       th:value="${nhanVien.soDienThoai}" placeholder="Số điện thoại">
+            </div>
+
+            <!-- Vai trò (dropdown) -->
+            <div>
+                <label>Vai trò <span style="color:var(--danger);">*</span></label>
+                <select class="input" name="vaiTroId" required>
+                    <option value="">-- Chọn vai trò --</option>
+                    <option th:each="vt : ${listVaiTro}"
+                            th:value="${vt.id}"
+                            th:text="${vt.tenVaiTro}"
+                            th:selected="${nhanVien.vaiTro != null && nhanVien.vaiTro.id == vt.id}">
+                    </option>
+                </select>
+            </div>
+
+            <!-- Nút submit + huỷ -->
+            <div style="display:flex; align-items:end; gap:8px; grid-column: span 3;">
+                <button class="btn primary" type="submit"
+                        th:text="${isEdit != null && isEdit} ? '💾 Cập nhật' : '✅ Thêm mới'">
+                    Thêm mới
+                </button>
+                <a th:if="${isEdit != null && isEdit}"
+                   th:href="@{/admin/employee}" class="btn">Huỷ</a>
+            </div>
+        </form>
+    </div>
+
+    <!-- ==================== BẢNG DANH SÁCH ==================== -->
+    <div class="card">
+        <h3 style="margin-top:0"
+            th:text="${trangThai} ? '📋 Danh sách nhân viên hoạt động' : '📋 Danh sách nhân viên nghỉ việc'">
+            Danh sách
+        </h3>
+
+        <table class="table">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Mã NV</th>
+                <th>Họ tên</th>
+                <th>Tên đăng nhập</th>
+                <th>SĐT</th>
+                <th>Vai trò</th>
+                <th>Hành động</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="nv : ${listNhanVien}">
+                <td th:text="${nv.id}"></td>
+                <td th:text="${nv.maNhanVien}"></td>
+                <td th:text="${nv.hoTen}"></td>
+                <td th:text="${nv.tenDangNhap}"></td>
+                <td th:text="${nv.soDienThoai ?: '-'}"></td>
+                <td th:text="${nv.vaiTro != null ? nv.vaiTro.tenVaiTro : '-'}"></td>
+                <td style="display:flex; gap:6px;">
+                    <!-- Nút SỬA -->
+                    <a th:href="@{'/admin/employee/edit/' + ${nv.id} + '?trangThai=' + ${trangThai}}"
+                       class="btn small primary">✏️ Sửa</a>
+
+                    <!-- Nút NGHỈ VIỆC / KHÔI PHỤC -->
+                    <form th:action="@{'/admin/employee/' + ${nv.id} + '/toggle-status'}"
+                          method="post" style="display:inline;">
+                        <input type="hidden" th:if="${_csrf != null}"
+                               th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                        <!-- Truyền filter hiện tại để redirect đúng tab -->
+                        <input type="hidden" name="currentFilter" th:value="${trangThai}">
+                        <button type="submit"
+                                th:onclick="${trangThai} ? 'return confirm(\'Cho nhân viên này nghỉ việc?\')' : 'return confirm(\'Khôi phục nhân viên này?\')'"
+                                class="btn small"
+                                th:classappend="${trangThai ? ' danger' : ' success'}"
+                                th:text="${trangThai ? '🚫 Nghỉ việc' : '♻️ Khôi phục'}">
+                        </button>
+                    </form>
+                </td>
+            </tr>
+
+            <!-- Khi danh sách trống -->
+            <tr th:if="${#lists.isEmpty(listNhanVien)}">
+                <td colspan="7" style="text-align:center; color:var(--muted); padding:30px;">
+                    <span th:text="${trangThai} ? 'Chưa có nhân viên nào' : 'Không có nhân viên nghỉ việc'"></span>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ==================== JAVASCRIPT ==================== -->
+    <script>
+        // --- Toggle form thêm/sửa ---
+        function toggleForm() {
+            const form = document.getElementById('formContainer');
+            form.style.display = form.style.display === 'none' ? 'block' : 'none';
+        }
+
+        // --- Ẩn form ---
+        function hideForm() {
+            document.getElementById('formContainer').style.display = 'none';
+        }
+
+        // --- Combobox lọc trạng thái: reload trang khi chọn ---
+        function filterByStatus(value) {
+            window.location.href = '/admin/employee?trangThai=' + value;
+        }
+
+        // --- Toast tự ẩn sau 3 giây ---
+        const toast = document.getElementById('toast');
+        if (toast) {
+            // Hiện toast
+            toast.style.display = 'block';
+            // Sau 3 giây → thêm class fade-out rồi ẩn
+            setTimeout(function() {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(-20px)';
+                // Sau animation 0.3s → ẩn hẳn
+                setTimeout(function() { toast.style.display = 'none'; }, 300);
+            }, 3000);
+        }
+    </script>
+
+</section>

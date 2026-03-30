@@ -22,13 +22,18 @@
                 <span class="dot"></span> Dashboard
             </a>
 
+            <!-- Menu: Thống kê chi tiết -->
+            <a th:href="@{/admin/thong-ke}" th:classappend="${activeMenu}=='thongke' ? ' active' : ''">
+                <span class="dot"></span> 📊 Thống kê
+            </a>
+
             <div class="group">Bán hàng</div>
             <a th:href="@{/admin/pos}" th:classappend="${activeMenu}=='pos' ? ' active' : ''">
                 <span class="dot"></span> Bán hàng tại quầy
             </a>
+            <div class="group">Hóa Đơn</div>
             <details class="nav-group"
                      th:open="${activeGroup}=='order'">
-
                 <summary class="nav-parent">
                     <span class="dot"></span> Quản Lý Hóa Đơn
                 </summary>
@@ -44,6 +49,7 @@
 
                 </div>
             </details>
+
             <div class="group">Sản phẩm</div>
 
             <!-- 1) Mục riêng: Sản phẩm (CRUD) -->
@@ -78,18 +84,23 @@
 
                 </div>
             </details>
+            <!-- ==================== NHÓM: QUẢN LÝ ==================== -->
+            <div class="group">Quản lý</div>
 
+            <!-- Menu: Nhân viên -->
+            <a th:href="@{/admin/employee}" th:classappend="${activeMenu}=='employee' ? ' active' : ''">
+                <span class="dot"></span> Nhân viên
+            </a>
 
-            <div class="group">Khuyến Mãi</div>
-            <a th:href="@{/admin/voucher}" th:classappend="${activeMenu}=='voucher' ? ' active' : ''">
-                <span class="dot"></span> Khuyến Mãi
+            <!-- Menu: Khách hàng -->
+            <a th:href="@{/admin/customer}" th:classappend="${activeMenu}=='customer' ? ' active' : ''">
+                <span class="dot"></span> Khách hàng
             </a>
-            <div class="group">Khác</div>
-            <a th:href="@{/admin/user}" th:classappend="${activeMenu}=='user' ? ' active' : ''">
-                <span class="dot"></span> Người dùng
-            </a>
-            <a th:href="@{/logout}">
-                <span class="dot"></span> Logout
+
+            <!-- ==================== LOGOUT ==================== -->
+            <div class="group">Hệ thống</div>
+            <a th:href="@{/login}">
+                <span class="dot"></span> Đăng xuất
             </a>
         </div>
     </aside>

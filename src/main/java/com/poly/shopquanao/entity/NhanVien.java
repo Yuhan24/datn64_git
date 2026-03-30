@@ -24,6 +24,10 @@ public class NhanVien {
     @Column(name = "mat_khau")
     private String matKhau;
 
+    /** Số điện thoại liên hệ */
+    @Column(name = "so_dien_thoai")
+    private String soDienThoai;
+
     @Column(name = "ho_ten")
     private String hoTen;
 

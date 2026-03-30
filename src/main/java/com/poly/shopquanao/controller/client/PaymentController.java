@@ -6,10 +6,7 @@ import com.poly.shopquanao.entity.DonHangChiTiet;
 import com.poly.shopquanao.entity.GioHang;
 import com.poly.shopquanao.entity.GioHangChiTiet;
 import com.poly.shopquanao.entity.SanPhamChiTiet;
-import com.poly.shopquanao.repository.client.DonHangRepository;
-import com.poly.shopquanao.repository.client.GioHangChiTietRepository;
-import com.poly.shopquanao.repository.client.GioHangRepository;
-import com.poly.shopquanao.repository.client.SanPhamChiTietRepository;
+import com.poly.shopquanao.repository.client.*;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
@@ -31,6 +28,7 @@ import java.util.*;
 @RequestMapping("/payment")
 public class PaymentController {
 
+    private final KhuyenMaiClientRepository khuyenMaiClientRepository;
     private final DonHangRepository donHangRepository;
     private final GioHangRepository gioHangRepository;
     private final GioHangChiTietRepository gioHangChiTietRepository;
@@ -167,21 +165,27 @@ public class PaymentController {
         }
 
         String responseCode = request.getParameter("vnp_ResponseCode");
+        String transactionStatus = request.getParameter("vnp_TransactionStatus");
 
         DonHang donHang = donHangRepository.findByMaDonHang(orderCode)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng"));
 
-        if (vnpSecureHash == null || !calculatedHash.equals(vnpSecureHash)) {
-            donHang.setTrangThaiThanhToan("THAT_BAI");
-            donHangRepository.save(donHang);
-            return "redirect:/order/detail/" + donHang.getId() + "?paymentError=invalid_hash";
-        }
-
+        // Nếu đơn đã thanh toán rồi thì không xử lý lại nữa
         if ("DA_THANH_TOAN".equals(donHang.getTrangThaiThanhToan())) {
             return "redirect:/order/success/" + donHang.getId();
         }
 
-        if ("00".equals(responseCode)) {
+        // Hash không hợp lệ: không trừ kho, không đóng đơn, giữ chờ thanh toán để có thể thử lại
+        if (vnpSecureHash == null || !calculatedHash.equals(vnpSecureHash)) {
+            donHang.setTrangThaiThanhToan("CHO_THANH_TOAN");
+            donHangRepository.save(donHang);
+            return "redirect:/order/detail/" + donHang.getId() + "?paymentError=invalid_hash";
+        }
+
+        // Chỉ khi cả 2 cùng là 00 mới coi là thanh toán thành công thật
+        if ("00".equals(responseCode) && "00".equals(transactionStatus)) {
+
+            // 1. kiểm tra tồn kho trước
             for (DonHangChiTiet ct : donHang.getChiTietList()) {
                 SanPhamChiTiet spct = sanPhamChiTietRepository.findByIdForUpdate(ct.getSanPhamChiTiet().getId())
                         .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm"));
@@ -191,11 +195,18 @@ public class PaymentController {
                     donHangRepository.save(donHang);
                     return "redirect:/order/detail/" + donHang.getId() + "?paymentError=outOfStock";
                 }
+            }
+
+            // 2. trừ kho
+            for (DonHangChiTiet ct : donHang.getChiTietList()) {
+                SanPhamChiTiet spct = sanPhamChiTietRepository.findByIdForUpdate(ct.getSanPhamChiTiet().getId())
+                        .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm"));
 
                 spct.setSoLuong(spct.getSoLuong() - ct.getSoLuong());
                 sanPhamChiTietRepository.save(spct);
             }
 
+            // 3. xóa khỏi giỏ hàng
             GioHang gioHang = gioHangRepository.findByKhachHang_Id(donHang.getKhachHang().getId())
                     .orElse(null);
 
@@ -213,13 +224,15 @@ public class PaymentController {
                 gioHangChiTietRepository.flush();
             }
 
+            // 4. cập nhật trạng thái
             donHang.setTrangThaiThanhToan("DA_THANH_TOAN");
             donHangRepository.save(donHang);
 
             return "redirect:/order/success/" + donHang.getId();
         }
 
-        donHang.setTrangThaiThanhToan("THAT_BAI");
+        // Khách hủy / thanh toán lỗi: không trừ kho, vẫn giữ đơn để có thể thanh toán lại
+        donHang.setTrangThaiThanhToan("CHO_THANH_TOAN");
         donHangRepository.save(donHang);
 
         return "redirect:/order/detail/" + donHang.getId() + "?paymentError=failed";

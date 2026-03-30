@@ -1,0 +1,333 @@
+<!--
+    thong-ke.html – Trang Thống kê chi tiết (Admin).
+
+    Sử dụng:
+      - Chart.js (CDN) để vẽ biểu đồ
+      - Bộ lọc: khoảng ngày custom, nút nhanh (Hôm nay / 7 ngày / Tháng / Quý / Năm)
+      - 4 card tổng quan (trong khoảng ngày đã lọc)
+      - 3 biểu đồ: Doanh thu theo ngày (cột), Trạng thái đơn (tròn), Top SP bán chạy (ngang)
+      - Bảng đơn hàng chi tiết
+-->
+<section xmlns:th="http://www.thymeleaf.org" th:fragment="content">
+
+    <!-- ==================== CHART.JS CDN ==================== -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+
+    <!-- ==================== BỘ LỌC NGÀY ==================== -->
+    <div class="card" style="margin-bottom:14px;">
+        <h3 style="margin-top:0">📊 Thống kê chi tiết</h3>
+
+        <!-- Form lọc theo khoảng ngày -->
+        <form th:action="@{/admin/thong-ke}" method="get"
+              style="display:flex; gap:10px; align-items:end; flex-wrap:wrap;">
+
+            <!-- Ngày bắt đầu -->
+            <div>
+                <label>Từ ngày</label>
+                <input class="input" type="date" name="tuNgay"
+                       th:value="${tuNgay}" required>
+            </div>
+
+            <!-- Ngày kết thúc -->
+            <div>
+                <label>Đến ngày</label>
+                <input class="input" type="date" name="denNgay"
+                       th:value="${denNgay}" required>
+            </div>
+
+            <!-- Nút Lọc -->
+            <button class="btn primary" type="submit">🔍 Lọc</button>
+        </form>
+
+        <!-- ==================== NÚT LỌC NHANH ==================== -->
+        <div style="display:flex; gap:8px; margin-top:12px; flex-wrap:wrap;">
+            <!-- Hôm nay -->
+            <a th:href="@{/admin/thong-ke/hom-nay}" class="btn small">📅 Hôm nay</a>
+            <!-- 7 ngày gần nhất -->
+            <a th:href="@{/admin/thong-ke/7-ngay}" class="btn small">📆 7 ngày</a>
+            <!-- Tháng này -->
+            <a th:href="@{/admin/thong-ke/thang-nay}" class="btn small">🗓️ Tháng này</a>
+
+            <!-- Quý 1 → 4 (năm hiện tại) -->
+            <a th:href="@{/admin/thong-ke/quy(quy=1, nam=${#dates.createNow().year})}" class="btn small">Q1</a>
+            <a th:href="@{/admin/thong-ke/quy(quy=2, nam=${#dates.createNow().year})}" class="btn small">Q2</a>
+            <a th:href="@{/admin/thong-ke/quy(quy=3, nam=${#dates.createNow().year})}" class="btn small">Q3</a>
+            <a th:href="@{/admin/thong-ke/quy(quy=4, nam=${#dates.createNow().year})}" class="btn small">Q4</a>
+
+            <!-- Cả năm -->
+            <a th:href="@{/admin/thong-ke/nam(nam=${#dates.createNow().year})}" class="btn small primary">📊 Cả năm</a>
+        </div>
+    </div>
+
+    <!-- ==================== 4 CARD THỐNG KÊ (TRONG KHOẢNG NGÀY) ==================== -->
+    <div class="stats-grid" style="margin-bottom:14px;">
+
+        <!-- Tổng đơn hàng -->
+        <div class="stat-card blue">
+            <div class="stat-icon">🛒</div>
+            <div class="stat-number" th:text="${tongDon}">0</div>
+            <div class="stat-label">Đơn hàng</div>
+        </div>
+
+        <!-- Tổng doanh thu -->
+        <div class="stat-card purple">
+            <div class="stat-icon">💰</div>
+            <div class="stat-number" th:text="${#numbers.formatDecimal(tongDoanhThu, 0, 'COMMA', 0, 'POINT')} + ' ₫'">0 ₫</div>
+            <div class="stat-label">Tổng doanh thu</div>
+        </div>
+
+        <!-- Doanh thu hoàn thành -->
+        <div class="stat-card green">
+            <div class="stat-icon">✅</div>
+            <div class="stat-number" th:text="${#numbers.formatDecimal(doanhThuHoanThanh, 0, 'COMMA', 0, 'POINT')} + ' ₫'">0 ₫</div>
+            <div class="stat-label">DT hoàn thành</div>
+        </div>
+
+        <!-- Đơn chờ xác nhận -->
+        <div class="stat-card yellow">
+            <div class="stat-icon">⏳</div>
+            <div class="stat-number" th:text="${donChoXacNhan}">0</div>
+            <div class="stat-label">Chờ xác nhận</div>
+        </div>
+    </div>
+
+    <!-- ==================== TRẠNG THÁI ĐƠN HÀNG (4 CARD NHỎ) ==================== -->
+    <div class="stats-grid" style="margin-bottom:14px;">
+        <div class="stat-card yellow">
+            <div class="stat-number" th:text="${donChoXacNhan}">0</div>
+            <div class="stat-label">⏳ Chờ xác nhận</div>
+        </div>
+        <div class="stat-card blue">
+            <div class="stat-number" th:text="${donDangGiao}">0</div>
+            <div class="stat-label">🚚 Đang giao</div>
+        </div>
+        <div class="stat-card green">
+            <div class="stat-number" th:text="${donHoanThanh}">0</div>
+            <div class="stat-label">✅ Hoàn thành</div>
+        </div>
+        <div class="stat-card red">
+            <div class="stat-number" th:text="${donDaHuy}">0</div>
+            <div class="stat-label">❌ Đã hủy</div>
+        </div>
+    </div>
+
+    <!-- ==================== BIỂU ĐỒ ==================== -->
+    <div style="display:grid; grid-template-columns: 2fr 1fr; gap:14px; margin-bottom:14px;">
+
+        <!-- BIỂU ĐỒ 1: Doanh thu theo ngày (Cột) -->
+        <div class="card">
+            <h3 style="margin-top:0">📈 Doanh thu theo ngày</h3>
+            <div style="position:relative; height:350px;">
+                <canvas id="chartDoanhThuNgay"></canvas>
+            </div>
+        </div>
+
+        <!-- BIỂU ĐỒ 2: Trạng thái đơn hàng (Tròn) -->
+        <div class="card">
+            <h3 style="margin-top:0">🥧 Trạng thái đơn hàng</h3>
+            <div style="position:relative; height:350px;">
+                <canvas id="chartTrangThai"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- BIỂU ĐỒ 3: Top sản phẩm bán chạy (Thanh ngang) -->
+    <div class="card" style="margin-bottom:14px;">
+        <h3 style="margin-top:0">🏆 Top sản phẩm bán chạy</h3>
+        <div style="position:relative; height:300px;">
+            <canvas id="chartTopSP"></canvas>
+        </div>
+    </div>
+
+    <!-- ==================== BẢNG ĐƠN HÀNG CHI TIẾT ==================== -->
+    <div class="card">
+        <h3 style="margin-top:0">📋 Chi tiết đơn hàng trong khoảng thời gian</h3>
+
+        <table class="table">
+            <thead>
+            <tr>
+                <th>Mã đơn</th>
+                <th>Khách hàng</th>
+                <th>Tổng tiền</th>
+                <th>Trạng thái</th>
+                <th>Thanh toán</th>
+                <th>Ngày tạo</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="dh : ${donHangList}">
+                <td th:text="${dh.maDonHang}"></td>
+                <td th:text="${dh.khachHang != null ? dh.khachHang.hoTen : 'Khách Vãng Lai'}"></td>
+                <td th:text="${dh.tongTien != null ? #numbers.formatDecimal(dh.tongTien, 0, 'COMMA', 0, 'POINT') + ' ₫' : '0 ₫'}"></td>
+                <td>
+                    <span class="badge"
+                          th:classappend="${dh.trangThaiId == 1 ? ' badge-warning' :
+                                           dh.trangThaiId == 2 ? ' badge-info' :
+                                           dh.trangThaiId == 3 ? ' badge-success' :
+                                           dh.trangThaiId == 4 ? ' badge-danger' : ''}"
+                          th:text="${dh.trangThaiId == 1 ? 'Chờ xác nhận' :
+                                    dh.trangThaiId == 2 ? 'Đang giao' :
+                                    dh.trangThaiId == 3 ? 'Hoàn thành' :
+                                    dh.trangThaiId == 4 ? 'Đã hủy' : 'Không rõ'}">
+                    </span>
+                </td>
+                <td th:text="${dh.trangThaiThanhToan ?: '-'}"></td>
+                <td th:text="${dh.ngayTao != null ? #temporals.format(dh.ngayTao, 'dd/MM/yyyy HH:mm') : '-'}"></td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(donHangList)}">
+                <td colspan="6" style="text-align:center; color:var(--muted);">
+                    Không có đơn hàng trong khoảng thời gian này
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ==================== SCRIPT CHART.JS ==================== -->
+    <script th:inline="javascript">
+        /*
+         * Dữ liệu được truyền từ Controller qua Thymeleaf inline JavaScript.
+         * Cú pháp: /*[[${variable}]]*​/ fallbackValue
+         */
+
+        // --- DỮ LIỆU TỪ SERVER ---
+        const chartLabels = /*[[${chartLabels}]]*/ [];          // ["2026-03-01", "2026-03-02", ...]
+        const chartValues = /*[[${chartValues}]]*/ [];          // [398000, 0, ...]
+        const topLabels   = /*[[${topLabels}]]*/ [];            // ["Áo sơ mi A", "Áo khoác B"]
+        const topValues   = /*[[${topValues}]]*/ [];            // [50, 30, ...]
+
+        // Trạng thái đơn hàng
+        const donChoXacNhan = /*[[${donChoXacNhan}]]*/ 0;
+        const donDangGiao   = /*[[${donDangGiao}]]*/ 0;
+        const donHoanThanh  = /*[[${donHoanThanh}]]*/ 0;
+        const donDaHuy      = /*[[${donDaHuy}]]*/ 0;
+
+        // ==================== BIỂU ĐỒ 1: DOANH THU THEO NGÀY (CỘT) ====================
+        new Chart(document.getElementById('chartDoanhThuNgay'), {
+            type: 'bar',
+            data: {
+                labels: chartLabels,
+                datasets: [{
+                    label: 'Doanh thu (₫)',
+                    data: chartValues,
+                    backgroundColor: 'rgba(79, 140, 255, 0.6)',      // xanh dương nhạt
+                    borderColor: 'rgba(79, 140, 255, 1)',
+                    borderWidth: 2,
+                    borderRadius: 8,                                   // bo góc cột
+                    borderSkipped: false
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        labels: { color: '#e8eefc' }                   // màu chữ legend (dark theme)
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: { color: '#98a6c7' },                   // màu tick trục X
+                        grid: { color: 'rgba(255,255,255,0.05)' }
+                    },
+                    y: {
+                        ticks: {
+                            color: '#98a6c7',
+                            callback: function(value) {                // Format số tiền VND
+                                return value.toLocaleString('vi-VN') + ' ₫';
+                            }
+                        },
+                        grid: { color: 'rgba(255,255,255,0.05)' }
+                    }
+                }
+            }
+        });
+
+        // ==================== BIỂU ĐỒ 2: TRẠNG THÁI ĐƠN HÀNG (TRÒN) ====================
+        new Chart(document.getElementById('chartTrangThai'), {
+            type: 'doughnut',                                          // biểu đồ donut (tròn rỗng giữa)
+            data: {
+                labels: ['Chờ xác nhận', 'Đang giao', 'Hoàn thành', 'Đã hủy'],
+                datasets: [{
+                    data: [donChoXacNhan, donDangGiao, donHoanThanh, donDaHuy],
+                    backgroundColor: [
+                        'rgba(255, 210, 50, 0.7)',     // vàng – chờ xác nhận
+                        'rgba(79, 140, 255, 0.7)',     // xanh – đang giao
+                        'rgba(33, 196, 122, 0.7)',     // xanh lá – hoàn thành
+                        'rgba(255, 90, 106, 0.7)'      // đỏ – đã hủy
+                    ],
+                    borderColor: [
+                        'rgba(255, 210, 50, 1)',
+                        'rgba(79, 140, 255, 1)',
+                        'rgba(33, 196, 122, 1)',
+                        'rgba(255, 90, 106, 1)'
+                    ],
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { color: '#e8eefc', padding: 16 }
+                    }
+                }
+            }
+        });
+
+        // ==================== BIỂU ĐỒ 3: TOP SẢN PHẨM BÁN CHẠY (THANH NGANG) ====================
+        if (topLabels.length > 0) {
+            new Chart(document.getElementById('chartTopSP'), {
+                type: 'bar',
+                data: {
+                    labels: topLabels,
+                    datasets: [{
+                        label: 'Số lượng bán',
+                        data: topValues,
+                        backgroundColor: [
+                            'rgba(255, 99, 132, 0.7)',     // đỏ hồng
+                            'rgba(54, 162, 235, 0.7)',     // xanh dương
+                            'rgba(255, 206, 86, 0.7)',     // vàng
+                            'rgba(75, 192, 192, 0.7)',     // xanh lá nhạt
+                            'rgba(153, 102, 255, 0.7)'     // tím
+                        ],
+                        borderColor: [
+                            'rgba(255, 99, 132, 1)',
+                            'rgba(54, 162, 235, 1)',
+                            'rgba(255, 206, 86, 1)',
+                            'rgba(75, 192, 192, 1)',
+                            'rgba(153, 102, 255, 1)'
+                        ],
+                        borderWidth: 2,
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',                                     // thanh ngang
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: {
+                            ticks: { color: '#98a6c7' },
+                            grid: { color: 'rgba(255,255,255,0.05)' }
+                        },
+                        y: {
+                            ticks: { color: '#e8eefc' },
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+        } else {
+            // Nếu không có data → hiện thông báo
+            document.getElementById('chartTopSP').parentElement.innerHTML =
+                '<p style="text-align:center; color:#98a6c7; padding:60px 0;">Chưa có dữ liệu bán hàng trong khoảng thời gian này</p>';
+        }
+    </script>
+
+</section>

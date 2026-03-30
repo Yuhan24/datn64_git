@@ -78,11 +78,11 @@ public class OrderClientController {
 
         LocalDateTime now = LocalDateTime.now();
 
-        if (khuyenMai.getNgayBatDau() == null || now.isBefore(khuyenMai.getNgayBatDau())) {
+        if (khuyenMai.getNgayBatDau() != null && now.isBefore(khuyenMai.getNgayBatDau())) {
             return new CouponResult(null, BigDecimal.ZERO, "not_started", false);
         }
 
-        if (khuyenMai.getNgayKetThuc() == null || now.isAfter(khuyenMai.getNgayKetThuc())) {
+        if (khuyenMai.getNgayKetThuc() != null && now.isAfter(khuyenMai.getNgayKetThuc())) {
             return new CouponResult(null, BigDecimal.ZERO, "expired", false);
         }
 
@@ -138,6 +138,48 @@ public class OrderClientController {
                     return gia.multiply(BigDecimal.valueOf(item.getSoLuong()));
                 })
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    private List<Map<String, Object>> buildVoucherList(BigDecimal tongTienGoc, String selectedCode) {
+        LocalDateTime now = LocalDateTime.now();
+
+        return khuyenMaiClientRepository.findAll().stream()
+                .map(km -> {
+                    String trangThai;
+                    boolean coTheChon = false;
+
+                    if (!Boolean.TRUE.equals(km.getTrangThai())) {
+                        trangThai = "Không hoạt động";
+                    } else if (km.getNgayBatDau() != null && now.isBefore(km.getNgayBatDau())) {
+                        trangThai = "Chưa bắt đầu";
+                    } else if (km.getNgayKetThuc() != null && now.isAfter(km.getNgayKetThuc())) {
+                        trangThai = "Hết hạn";
+                    } else if (km.getSoLuong() == null || km.getSoLuong() <= 0) {
+                        trangThai = "Hết lượt";
+                    } else if (km.getGiaTriDonToiThieu() != null
+                            && tongTienGoc.compareTo(km.getGiaTriDonToiThieu()) < 0) {
+                        trangThai = "Chưa đủ điều kiện";
+                    } else {
+                        trangThai = "Có thể dùng";
+                        coTheChon = true;
+                    }
+
+                    Map<String, Object> item = new LinkedHashMap<>();
+                    item.put("km", km);
+                    item.put("trangThai", trangThai);
+                    item.put("coTheChon", coTheChon);
+                    item.put("duocChon", selectedCode != null
+                            && !selectedCode.isBlank()
+                            && selectedCode.trim().equalsIgnoreCase(km.getMaKhuyenMai()));
+
+                    return item;
+                })
+                .sorted((a, b) -> {
+                    boolean aUsable = Boolean.TRUE.equals(a.get("coTheChon"));
+                    boolean bUsable = Boolean.TRUE.equals(b.get("coTheChon"));
+                    return Boolean.compare(bUsable, aUsable);
+                })
+                .toList();
     }
 
     private void saveSelectedIdsToSession(HttpSession session, List<Integer> selectedIds) {
@@ -386,6 +428,7 @@ public class OrderClientController {
         donHang.setTienGiam(tienGiam);
         donHang.setTongTien(tongTienSauGiam);
         donHang.setTrangThaiId(1);
+        donHang.setLoaiDon(0);
 
         if ("COD".equals(request.getPhuongThucThanhToan())) {
             donHang.setTrangThaiThanhToan("CHUA_THANH_TOAN");
@@ -408,24 +451,20 @@ public class OrderClientController {
         donHang.setChiTietList(chiTietDonHangList);
         donHangRepository.save(donHang);
 
-        if (khuyenMai != null) {
+        if (khuyenMai != null && "COD".equals(request.getPhuongThucThanhToan())) {
             khuyenMai.setSoLuong(khuyenMai.getSoLuong() - 1);
             khuyenMaiClientRepository.save(khuyenMai);
         }
 
         clearCheckoutSession(session);
 
+
         if ("VNPAY".equals(request.getPhuongThucThanhToan())) {
             return "redirect:/payment/create?amount=" + tongTienSauGiam.longValue()
                     + "&orderCode=" + donHang.getMaDonHang();
         }
 
-        for (GioHangChiTiet item : selectedItems) {
-            SanPhamChiTiet spct = lockedSpctMap.get(item.getSanPhamChiTiet().getId());
-            spct.setSoLuong(spct.getSoLuong() - item.getSoLuong());
-            sanPhamChiTietRepository.save(spct);
-        }
-
+// COD: chưa trừ kho ở đây
         Integer gioHangId = gioHang.getId();
         List<Integer> selectedItemIds = selectedItems.stream()
                 .map(GioHangChiTiet::getId)
@@ -519,10 +558,11 @@ public class OrderClientController {
             return "redirect:/order/my-orders";
         }
 
-        if ("CHUA_THANH_TOAN".equals(donHang.getTrangThaiThanhToan())
-                || "DA_THANH_TOAN".equals(donHang.getTrangThaiThanhToan())) {
+        if ("DA_THANH_TOAN".equals(donHang.getTrangThaiThanhToan())) {
             for (DonHangChiTiet ct : donHang.getChiTietList()) {
-                SanPhamChiTiet spct = ct.getSanPhamChiTiet();
+                SanPhamChiTiet spct = sanPhamChiTietRepository.findByIdForUpdate(ct.getSanPhamChiTiet().getId())
+                        .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm"));
+
                 spct.setSoLuong(spct.getSoLuong() + ct.getSoLuong());
                 sanPhamChiTietRepository.save(spct);
             }
@@ -564,6 +604,13 @@ public class OrderClientController {
         model.addAttribute("tongTienGoc", tongTienGoc != null ? tongTienGoc : tongMacDinh);
         model.addAttribute("tienGiam", tienGiam != null ? tienGiam : BigDecimal.ZERO);
         model.addAttribute("tongThanhToan", tongThanhToan != null ? tongThanhToan : tongMacDinh);
+
+        String selectedCode = request != null ? request.getMaKhuyenMai() : null;
+        List<Map<String, Object>> voucherList =
+                buildVoucherList(tongTienGoc != null ? tongTienGoc : tongMacDinh, selectedCode);
+
+        model.addAttribute("voucherList", voucherList);
+
 
         return "client/checkout";
     }
