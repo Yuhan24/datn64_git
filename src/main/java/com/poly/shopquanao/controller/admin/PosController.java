@@ -125,6 +125,14 @@ public class PosController {
 
     @PostMapping("/create-order")
     public String createOrder(Authentication authentication, RedirectAttributes ra){
+        // 🔴 Đếm số hóa đơn chờ hiện tại
+        List<DonHang> hoaDonCho = donHangADRepository
+                .findByLoaiDonAndTrangThaiIdOrderByNgayTaoDesc(1,1);
+
+        if (hoaDonCho.size() >= 10) {
+            ra.addFlashAttribute("error", "Chỉ được tạo tối đa 10 hóa đơn chờ");
+            return "redirect:/admin/pos";
+        }
         DonHang dh = new DonHang();
         dh.setMaDonHang("HD"+ System.currentTimeMillis());
         dh.setNgayTao(LocalDateTime.now());
@@ -147,7 +155,56 @@ public class PosController {
         return "redirect:/admin/pos?donHangId=" + dh.getId() ;
 
     }
+
+
+    @PostMapping("/update-qty")
+    @Transactional
+    public String updateQty(
+            @RequestParam Integer donHangChiTietId,
+            @RequestParam Integer soLuong,
+            RedirectAttributes ra
+    ){
+        DonHangChiTiet ct = donHangChiTietADRepository.findById(donHangChiTietId).orElseThrow();
+        Integer donHangId = ct.getDonHang().getId();
+
+        SanPhamChiTiet spct = sanPhamChiTietADMRepository
+                .findById(ct.getSanPhamChiTiet().getId())
+                .orElseThrow();
+
+        int soLuongCu = ct.getSoLuong();
+
+        if (soLuong <= 0){
+            spct.setSoLuong((spct.getSoLuong() == null ? 0 : spct.getSoLuong()) + soLuongCu);
+            sanPhamChiTietADMRepository.save(spct);
+
+            donHangChiTietADRepository.delete(ct);
+            updateTongTien(donHangId);
+            return "redirect:/admin/pos?donHangId=" + donHangId;
+        }
+
+        if (soLuong > soLuongCu) {
+            int canThem = soLuong - soLuongCu;
+            if (spct.getSoLuong() == null || spct.getSoLuong() < canThem) {
+                ra.addFlashAttribute("error", "Số lượng vượt quá tồn kho");
+                return "redirect:/admin/pos?donHangId=" + donHangId;
+            }
+
+            spct.setSoLuong(spct.getSoLuong() - canThem);
+        } else if (soLuong < soLuongCu) {
+            int traLai = soLuongCu - soLuong;
+            spct.setSoLuong((spct.getSoLuong() == null ? 0 : spct.getSoLuong()) + traLai);
+        }
+
+        ct.setSoLuong(soLuong);
+        donHangChiTietADRepository.save(ct);
+        sanPhamChiTietADMRepository.save(spct);
+
+        updateTongTien(donHangId);
+        return "redirect:/admin/pos?donHangId=" + donHangId;
+    }
+
     @PostMapping("/add-product")
+    @Transactional
     public String addProduct(
             @RequestParam Integer donHangId,
             @RequestParam Integer spctId,
@@ -156,7 +213,7 @@ public class PosController {
         DonHang donHang = donHangADRepository.findById(donHangId).orElseThrow();
 
         if (isExpiredOrder(donHang)) {
-            ra.addFlashAttribute("error", "Hóa đơn đã quá 30 phút và không còn hiệu lực");
+            ra.addFlashAttribute("error", "Hóa đơn đã quá 1 tiếng  và không còn hiệu lực");
             return "redirect:/admin/pos";
         }
 
@@ -166,6 +223,7 @@ public class PosController {
             ra.addFlashAttribute("error", "Sản phẩm chi tiết đang ngừng hoạt động");
             return "redirect:/admin/pos?donHangId=" + donHangId;
         }
+
         if (spct.getSoLuong() == null || spct.getSoLuong() <= 0){
             ra.addFlashAttribute("error", "Sản phẩm đã hết hàng");
             return "redirect:/admin/pos?donHangId=" + donHangId;
@@ -175,14 +233,12 @@ public class PosController {
                 .findByDonHang_IdAndSanPhamChiTiet_Id(donHangId, spctId)
                 .orElse(null);
 
+        // TRỪ KHO LUÔN KHI THÊM VÀO GIỎ
+        spct.setSoLuong(spct.getSoLuong() - 1);
+        sanPhamChiTietADMRepository.save(spct);
+
         if (ct != null){
-            if (ct.getSoLuong() + 1 > spct.getSoLuong()){
-                ra.addFlashAttribute("error",
-                        "Sản phẩm " + spct.getSanPham().getTenSanPham()
-                                + " đã được bán ở hóa đơn khác hoặc không đủ tồn kho");
-                return "redirect:/admin/pos?donHangId=" + donHangId;
-            }
-            ct.setSoLuong(ct.getSoLuong()+1);
+            ct.setSoLuong(ct.getSoLuong() + 1);
             ct.setGiaTaiThoiDiem(spct.getGiaBan());
             donHangChiTietADRepository.save(ct);
         } else {
@@ -198,36 +254,22 @@ public class PosController {
         return "redirect:/admin/pos?donHangId=" + donHangId;
     }
 
-    @PostMapping("/update-qty")
-    public String updateQty(
-            @RequestParam Integer donHangChiTietId,
-            @RequestParam Integer soLuong,
-            RedirectAttributes ra
-
-    ){
-        DonHangChiTiet ct = donHangChiTietADRepository.findById(donHangChiTietId).orElseThrow();
-        Integer donHangId = ct.getDonHang().getId();
-        SanPhamChiTiet spct = ct.getSanPhamChiTiet();
-
-        if (soLuong<=0){
-            donHangChiTietADRepository.delete(ct);
-            updateTongTien(donHangId);
-            return "redirect:/admin/pos?donHangId=" + donHangId;
-        }
-        if (soLuong> spct.getSoLuong()){
-            ra.addFlashAttribute("error", "Số lượng vượt quá tồn kho");
-            return "redirect:/admin/pos?donHangId=" + donHangId;
-        }
-        ct.setSoLuong(soLuong);
-        donHangChiTietADRepository.save(ct);
-        updateTongTien(donHangId);
-        return "redirect:/admin/pos?donHangId=" + donHangId;
-    }
-
     @PostMapping("/remove-item/{id}")
-    public  String removeItem(@PathVariable Integer id){
+    @Transactional
+    public String removeItem(@PathVariable Integer id){
         DonHangChiTiet dhct = donHangChiTietADRepository.findById(id).orElseThrow();
-        Integer donHangId =dhct.getDonHang().getId();
+        Integer donHangId = dhct.getDonHang().getId();
+
+        SanPhamChiTiet spct = sanPhamChiTietADMRepository
+                .findById(dhct.getSanPhamChiTiet().getId())
+                .orElse(null);
+
+        if (spct != null) {
+            int soLuongTraLai = dhct.getSoLuong() == null ? 0 : dhct.getSoLuong();
+            spct.setSoLuong((spct.getSoLuong() == null ? 0 : spct.getSoLuong()) + soLuongTraLai);
+            sanPhamChiTietADMRepository.save(spct);
+        }
+
         donHangChiTietADRepository.delete(dhct);
         updateTongTien(donHangId);
         return "redirect:/admin/pos?donHangId=" + donHangId;
@@ -255,7 +297,7 @@ public class PosController {
             return "redirect:/admin/pos?donHangId=" + donHangId;
         }
         if (isExpiredOrder(donHang)) {
-            ra.addFlashAttribute("error", "Hóa đơn đã quá 30 phút nên không thể thanh toán");
+            ra.addFlashAttribute("error", "Hóa đơn đã quá 1 tiếng  nên không thể thanh toán");
             return "redirect:/admin/pos";
         }
 
@@ -305,15 +347,7 @@ public class PosController {
             }
         }
 
-        // Trừ kho bằng dữ liệu mới nhất
-        for (DonHangChiTiet ct : gioHang) {
-            SanPhamChiTiet spct = sanPhamChiTietADMRepository
-                    .findById(ct.getSanPhamChiTiet().getId())
-                    .orElseThrow();
 
-            spct.setSoLuong(spct.getSoLuong() - ct.getSoLuong());
-            sanPhamChiTietADMRepository.save(spct);
-        }
 
         // Gán nhân viên đăng nhập
         if (authentication != null) {
@@ -359,7 +393,7 @@ public class PosController {
             return "redirect:/admin/pos?donHangId=" + donHangId;
         }
         if (isExpiredOrder(donHang)) {
-            ra.addFlashAttribute("error", "Hóa đơn đã quá 30 phút nên không thể áp dụng khuyến mãi");
+            ra.addFlashAttribute("error", "Hóa đơn đã quá 1 tiếng  nên không thể áp dụng khuyến mãi");
             return "redirect:/admin/pos";
         }
 
@@ -442,7 +476,7 @@ public class PosController {
             return "redirect:/admin/pos";
         }
         if (isExpiredOrder(donHang)) {
-            ra.addFlashAttribute("error", "Hóa đơn đã quá 30 phút và không còn hiệu lực");
+            ra.addFlashAttribute("error", "Hóa đơn đã quá 1 tiếng  và không còn hiệu lực");
             return "redirect:/admin/pos";
         }
 
@@ -482,7 +516,7 @@ public class PosController {
             return "redirect:/admin/pos";
         }
         if (isExpiredOrder(dh)) {
-            ra.addFlashAttribute("error", "Hóa đơn đã quá 30 phút và không còn hiệu lực");
+            ra.addFlashAttribute("error", "Hóa đơn đã quá 1 tiếng và không còn hiệu lực");
             return "redirect:/admin/pos";
         }
 
@@ -542,22 +576,39 @@ public class PosController {
         }
 
         List<DonHangChiTiet> chiTietList = donHangChiTietADRepository.findByDonHang_Id(id);
+
+        for (DonHangChiTiet ct : chiTietList) {
+            SanPhamChiTiet spct = sanPhamChiTietADMRepository
+                    .findById(ct.getSanPhamChiTiet().getId())
+                    .orElse(null);
+
+            if (spct != null) {
+                int soLuongTra = ct.getSoLuong() == null ? 0 : ct.getSoLuong();
+                spct.setSoLuong((spct.getSoLuong() == null ? 0 : spct.getSoLuong()) + soLuongTra);
+                sanPhamChiTietADMRepository.save(spct);
+            }
+        }
+
         donHangChiTietADRepository.deleteAll(chiTietList);
         donHangADRepository.delete(donHang);
 
         ra.addFlashAttribute("success", "Đã xóa hóa đơn thành công");
         return "redirect:/admin/pos";
     }
+
+
+
     private boolean isExpiredOrder(DonHang donHang) {
         return donHang != null
                 && donHang.getNgayTao() != null
                 && donHang.getTrangThaiId() != null
                 && donHang.getTrangThaiId() == 1
                 && "CHUA_THANH_TOAN".equalsIgnoreCase(donHang.getTrangThaiThanhToan())
-                && donHang.getNgayTao().isBefore(LocalDateTime.now().minusMinutes(30));
+                && donHang.getNgayTao().isBefore(LocalDateTime.now().minusHours(1));
     }
 
     @PostMapping("/decrease-quantity/{id}")
+    @Transactional
     public String decreaseQuantity(@PathVariable Integer id, RedirectAttributes ra) {
         DonHangChiTiet ct = donHangChiTietADRepository.findById(id).orElse(null);
 
@@ -567,19 +618,25 @@ public class PosController {
         }
 
         Integer donHangId = ct.getDonHang().getId();
+        SanPhamChiTiet spct = sanPhamChiTietADMRepository
+                .findById(ct.getSanPhamChiTiet().getId())
+                .orElse(null);
 
-//        if (ct.getSoLuong() <= 1) {
-//            donHangChiTietADRepository.delete(ct);
-//            updateTongTienDonHang(ct.getDonHang());
-//            ra.addFlashAttribute("success", "Đã xóa sản phẩm khỏi giỏ");
-//            return "redirect:/admin/pos?donHangId=" + donHangId;
-//        }
+        if (spct == null) {
+            ra.addFlashAttribute("error", "Không tìm thấy sản phẩm chi tiết");
+            return "redirect:/admin/pos?donHangId=" + donHangId;
+        }
+
         if (ct.getSoLuong() <= 1){
             ra.addFlashAttribute("error", "Đã đạt số lượng nhỏ nhất");
-            return "redirect:/admin/pos";
+            return "redirect:/admin/pos?donHangId=" + donHangId;
         }
+
         ct.setSoLuong(ct.getSoLuong() - 1);
+        spct.setSoLuong((spct.getSoLuong() == null ? 0 : spct.getSoLuong()) + 1);
+
         donHangChiTietADRepository.save(ct);
+        sanPhamChiTietADMRepository.save(spct);
 
         updateTongTienDonHang(ct.getDonHang());
 
@@ -588,6 +645,7 @@ public class PosController {
     }
 
     @PostMapping("/increase-quantity/{id}")
+    @Transactional
     public String increaseQuantity(@PathVariable Integer id, RedirectAttributes ra) {
         DonHangChiTiet ct = donHangChiTietADRepository.findById(id).orElse(null);
 
@@ -596,21 +654,30 @@ public class PosController {
             return "redirect:/admin/pos";
         }
 
-        SanPhamChiTiet spct = ct.getSanPhamChiTiet();
+        SanPhamChiTiet spct = sanPhamChiTietADMRepository
+                .findById(ct.getSanPhamChiTiet().getId())
+                .orElse(null);
 
         if (spct == null) {
             ra.addFlashAttribute("error", "Không tìm thấy sản phẩm chi tiết");
             return "redirect:/admin/pos?donHangId=" + ct.getDonHang().getId();
         }
 
-        if (ct.getSoLuong() >= spct.getSoLuong()) {
+        if (!Boolean.TRUE.equals(spct.getTrangThai())) {
+            ra.addFlashAttribute("error", "Sản phẩm đang ngừng hoạt động");
+            return "redirect:/admin/pos?donHangId=" + ct.getDonHang().getId();
+        }
+
+        if (spct.getSoLuong() == null || spct.getSoLuong() <= 0) {
             ra.addFlashAttribute("error", "Số lượng vượt quá tồn kho");
             return "redirect:/admin/pos?donHangId=" + ct.getDonHang().getId();
         }
 
         ct.setSoLuong(ct.getSoLuong() + 1);
+        spct.setSoLuong(spct.getSoLuong() - 1);
 
         donHangChiTietADRepository.save(ct);
+        sanPhamChiTietADMRepository.save(spct);
 
         updateTongTienDonHang(ct.getDonHang());
 

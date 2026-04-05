@@ -50,11 +50,16 @@ public class PaymentController {
             return "redirect:/order/detail/" + donHang.getId();
         }
 
+        BigDecimal thanhTienThanhToan = donHang.getTongTien() != null ? donHang.getTongTien() : amount;
+        if (thanhTienThanhToan == null || thanhTienThanhToan.compareTo(BigDecimal.ZERO) <= 0) {
+            return "redirect:/order/detail/" + donHang.getId();
+        }
+
         Map<String, String> params = new HashMap<>();
         params.put("vnp_Version", "2.1.0");
         params.put("vnp_Command", "pay");
         params.put("vnp_TmnCode", VnPayConfig.vnp_TmnCode);
-        params.put("vnp_Amount", amount.multiply(BigDecimal.valueOf(100)).toBigInteger().toString());
+        params.put("vnp_Amount", thanhTienThanhToan.multiply(BigDecimal.valueOf(100)).toBigInteger().toString());
         params.put("vnp_CurrCode", "VND");
 
         String txnRef = orderCode + "_" + System.currentTimeMillis();

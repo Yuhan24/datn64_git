@@ -4,6 +4,7 @@ import com.poly.shopquanao.dto.client.CheckoutRequest;
 import com.poly.shopquanao.entity.*;
 import com.poly.shopquanao.repository.KhachHangLoginRepository;
 import com.poly.shopquanao.repository.client.*;
+import com.poly.shopquanao.service.client.GoongShippingService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
@@ -23,6 +24,14 @@ import java.util.stream.Collectors;
 public class OrderClientController {
 
     private static final String SESSION_CHECKOUT_SELECTED_IDS = "CHECKOUT_SELECTED_IDS";
+
+    private final GoongShippingService goongShippingService;
+    private final KhuyenMaiClientRepository khuyenMaiClientRepository;
+    private final GioHangRepository gioHangRepository;
+    private final GioHangChiTietRepository gioHangChiTietRepository;
+    private final DonHangRepository donHangRepository;
+    private final KhachHangLoginRepository khachHangRepository;
+    private final SanPhamChiTietRepository sanPhamChiTietRepository;
 
     private static class CouponResult {
         private final KhuyenMai khuyenMai;
@@ -57,12 +66,13 @@ public class OrderClientController {
         }
     }
 
-    private final KhuyenMaiClientRepository khuyenMaiClientRepository;
-    private final GioHangRepository gioHangRepository;
-    private final GioHangChiTietRepository gioHangChiTietRepository;
-    private final DonHangRepository donHangRepository;
-    private final KhachHangLoginRepository khachHangRepository;
-    private final SanPhamChiTietRepository sanPhamChiTietRepository;
+    private String safe(String value) {
+        return value == null ? "" : value.trim();
+    }
+
+    private boolean isBlank(String value) {
+        return value == null || value.trim().isEmpty();
+    }
 
     private CouponResult validateCoupon(String maKhuyenMai, BigDecimal tongTienGoc) {
         if (maKhuyenMai == null || maKhuyenMai.isBlank()) {
@@ -121,12 +131,12 @@ public class OrderClientController {
     private KhachHang getCurrentKhachHang(Authentication authentication) {
         String username = authentication.getName();
         return khachHangRepository.findByTenDangNhap(username)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy khách hàng"));
+                .orElseThrow(() -> new RuntimeException("KhÃ´ng tÃ¬m tháº¥y khÃ¡ch hÃ ng"));
     }
 
     private GioHang getCurrentGioHang(KhachHang khachHang) {
         return gioHangRepository.findByKhachHang_Id(khachHang.getId())
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy giỏ hàng"));
+                .orElseThrow(() -> new RuntimeException("KhÃ´ng tÃ¬m tháº¥y giá» hÃ ng"));
     }
 
     private BigDecimal tinhTongTien(List<GioHangChiTiet> items) {
@@ -140,6 +150,22 @@ public class OrderClientController {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
+    private BigDecimal tinhTongTienDonHang(DonHang donHang) {
+        if (donHang == null || donHang.getChiTietList() == null) {
+            return BigDecimal.ZERO;
+        }
+
+        return donHang.getChiTietList().stream()
+                .map(item -> {
+                    BigDecimal gia = item.getGiaTaiThoiDiem() != null
+                            ? item.getGiaTaiThoiDiem()
+                            : BigDecimal.ZERO;
+                    int soLuong = item.getSoLuong() != null ? item.getSoLuong() : 0;
+                    return gia.multiply(BigDecimal.valueOf(soLuong));
+                })
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
     private List<Map<String, Object>> buildVoucherList(BigDecimal tongTienGoc, String selectedCode) {
         LocalDateTime now = LocalDateTime.now();
 
@@ -149,18 +175,18 @@ public class OrderClientController {
                     boolean coTheChon = false;
 
                     if (!Boolean.TRUE.equals(km.getTrangThai())) {
-                        trangThai = "Không hoạt động";
+                        trangThai = "KhÃ´ng hoáº¡t Ä‘á»™ng";
                     } else if (km.getNgayBatDau() != null && now.isBefore(km.getNgayBatDau())) {
-                        trangThai = "Chưa bắt đầu";
+                        trangThai = "ChÆ°a báº¯t Ä‘áº§u";
                     } else if (km.getNgayKetThuc() != null && now.isAfter(km.getNgayKetThuc())) {
-                        trangThai = "Hết hạn";
+                        trangThai = "Háº¿t háº¡n";
                     } else if (km.getSoLuong() == null || km.getSoLuong() <= 0) {
-                        trangThai = "Hết lượt";
+                        trangThai = "Háº¿t lÆ°á»£t";
                     } else if (km.getGiaTriDonToiThieu() != null
                             && tongTienGoc.compareTo(km.getGiaTriDonToiThieu()) < 0) {
-                        trangThai = "Chưa đủ điều kiện";
+                        trangThai = "ChÆ°a Ä‘á»§ Ä‘iá»u kiá»‡n";
                     } else {
-                        trangThai = "Có thể dùng";
+                        trangThai = "CÃ³ thá»ƒ dÃ¹ng";
                         coTheChon = true;
                     }
 
@@ -246,7 +272,7 @@ public class OrderClientController {
         GioHang gioHang = getCurrentGioHang(khachHang);
 
         GioHangChiTiet item = gioHangChiTietRepository.findById(cartItemId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm trong giỏ"));
+                .orElseThrow(() -> new RuntimeException("KhÃ´ng tÃ¬m tháº¥y sáº£n pháº©m trong giá»"));
 
         if (!item.getGioHang().getId().equals(gioHang.getId())) {
             clearCheckoutSession(session);
@@ -302,7 +328,7 @@ public class OrderClientController {
         return renderCheckoutPage(
                 model, khachHang, items,
                 null, null, false,
-                tongTien, BigDecimal.ZERO, tongTien
+                tongTien, BigDecimal.ZERO, BigDecimal.ZERO, tongTien
         );
     }
 
@@ -352,7 +378,7 @@ public class OrderClientController {
             Integer spctId = item.getSanPhamChiTiet().getId();
 
             SanPhamChiTiet spct = sanPhamChiTietRepository.findByIdForUpdate(spctId)
-                    .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm"));
+                    .orElseThrow(() -> new RuntimeException("KhÃ´ng tÃ¬m tháº¥y sáº£n pháº©m"));
 
             lockedSpctMap.put(spctId, spct);
 
@@ -361,9 +387,7 @@ public class OrderClientController {
             }
 
             BigDecimal giaBan = spct.getGiaBan() != null ? spct.getGiaBan() : BigDecimal.ZERO;
-            tongTienGoc = tongTienGoc.add(
-                    giaBan.multiply(BigDecimal.valueOf(item.getSoLuong()))
-            );
+            tongTienGoc = tongTienGoc.add(giaBan.multiply(BigDecimal.valueOf(item.getSoLuong())));
         }
 
         CouponResult couponResult = validateCoupon(request.getMaKhuyenMai(), tongTienGoc);
@@ -380,7 +404,8 @@ public class OrderClientController {
                     couponResult.isCouponSuccess(),
                     tongTienGoc,
                     tienGiam,
-                    tongTienSauGiam
+                    request.getPhiVanChuyen(),
+                    tongTienSauGiam.add(request.getPhiVanChuyen() != null ? request.getPhiVanChuyen() : BigDecimal.ZERO)
             );
         }
 
@@ -394,7 +419,8 @@ public class OrderClientController {
                     false,
                     tongTienGoc,
                     BigDecimal.ZERO,
-                    tongTienGoc
+                    request.getPhiVanChuyen(),
+                    tongTienGoc.add(request.getPhiVanChuyen() != null ? request.getPhiVanChuyen() : BigDecimal.ZERO)
             );
         }
 
@@ -410,25 +436,94 @@ public class OrderClientController {
                     false,
                     tongTienGoc,
                     tienGiam,
-                    tongTienSauGiam
+                    request.getPhiVanChuyen(),
+                    tongTienSauGiam.add(request.getPhiVanChuyen() != null ? request.getPhiVanChuyen() : BigDecimal.ZERO)
+            );
+        }
+
+        if (isBlank(request.getTenNguoiNhan())
+                || isBlank(request.getSoDienThoai())
+                || isBlank(request.getDiaChiGiaoHang())
+                || isBlank(request.getTinhThanh())
+                || isBlank(request.getPhuongXa())) {
+            return renderCheckoutPage(
+                    model,
+                    khachHang,
+                    selectedItems,
+                    request,
+                    null,
+                    false,
+                    tongTienGoc,
+                    tienGiam,
+                    request.getPhiVanChuyen(),
+                    tongTienSauGiam.add(request.getPhiVanChuyen() != null ? request.getPhiVanChuyen() : BigDecimal.ZERO)
             );
         }
 
         KhuyenMai khuyenMai = couponResult.getKhuyenMai();
+
+        String diaChiFull = String.join(", ",
+                safe(request.getDiaChiGiaoHang()),
+                safe(request.getPhuongXa()),
+
+                safe(request.getTinhThanh())
+        );
+
+        BigDecimal phiShip;
+        try {
+            GoongShippingService.ShippingResult shipResult =
+                    goongShippingService.calculateByProvince(request.getTinhThanh());
+            phiShip = shipResult.getPhiVanChuyen();
+        } catch (Exception e) {
+            return renderCheckoutPage(
+                    model,
+                    khachHang,
+                    selectedItems,
+                    request,
+                    "shipping_error",
+                    false,
+                    tongTienGoc,
+                    tienGiam,
+                    BigDecimal.ZERO,
+                    tongTienSauGiam
+            );
+        }
+
+        if (request.getPhiVanChuyen() != null) {
+            BigDecimal chenhlech = request.getPhiVanChuyen().subtract(phiShip).abs();
+            if (chenhlech.compareTo(BigDecimal.ZERO) > 0) {
+                return renderCheckoutPage(
+                        model,
+                        khachHang,
+                        selectedItems,
+                        request,
+                        "invalid_shipping_fee",
+                        false,
+                        tongTienGoc,
+                        tienGiam,
+                        phiShip,
+                        tongTienSauGiam.add(phiShip)
+                );
+            }
+        }
+
+        BigDecimal tongThanhToan = tongTienSauGiam.add(phiShip);
 
         DonHang donHang = new DonHang();
         donHang.setMaDonHang("DH" + System.currentTimeMillis());
         donHang.setKhachHang(khachHang);
         donHang.setTenNguoiNhan(request.getTenNguoiNhan());
         donHang.setSoDienThoai(request.getSoDienThoai());
-        donHang.setDiaChiGiaoHang(request.getDiaChiGiaoHang());
+        donHang.setDiaChiGiaoHang(diaChiFull);
         donHang.setGhiChu(request.getGhiChu());
         donHang.setPhuongThucThanhToan(request.getPhuongThucThanhToan());
         donHang.setKhuyenMai(khuyenMai);
         donHang.setTienGiam(tienGiam);
-        donHang.setTongTien(tongTienSauGiam);
+        donHang.setPhiVanChuyen(phiShip);
+        donHang.setTongTien(tongThanhToan);
         donHang.setTrangThaiId(1);
         donHang.setLoaiDon(0);
+        donHang.setNgayTao(LocalDateTime.now());
 
         if ("COD".equals(request.getPhuongThucThanhToan())) {
             donHang.setTrangThaiThanhToan("CHUA_THANH_TOAN");
@@ -458,13 +553,11 @@ public class OrderClientController {
 
         clearCheckoutSession(session);
 
-
         if ("VNPAY".equals(request.getPhuongThucThanhToan())) {
-            return "redirect:/payment/create?amount=" + tongTienSauGiam.longValue()
+            return "redirect:/payment/create?amount=" + tongThanhToan.longValue()
                     + "&orderCode=" + donHang.getMaDonHang();
         }
 
-// COD: chưa trừ kho ở đây
         Integer gioHangId = gioHang.getId();
         List<Integer> selectedItemIds = selectedItems.stream()
                 .map(GioHangChiTiet::getId)
@@ -483,13 +576,18 @@ public class OrderClientController {
         KhachHang khachHang = getCurrentKhachHang(authentication);
 
         DonHang donHang = donHangRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng"));
+                .orElseThrow(() -> new RuntimeException("KhÃ´ng tÃ¬m tháº¥y Ä‘Æ¡n hÃ ng"));
 
         if (!donHang.getKhachHang().getId().equals(khachHang.getId())) {
             return "redirect:/order/my-orders";
         }
 
+        BigDecimal tongTienSanPham = tinhTongTienDonHang(donHang);
+        BigDecimal phiVanChuyen = donHang.getPhiVanChuyen() != null ? donHang.getPhiVanChuyen() : BigDecimal.ZERO;
+
         model.addAttribute("order", donHang);
+        model.addAttribute("tongTienSanPham", tongTienSanPham);
+        model.addAttribute("phiVanChuyen", phiVanChuyen);
         model.addAttribute("activeMenu", "orders");
         return "client/order-success";
     }
@@ -527,14 +625,19 @@ public class OrderClientController {
         KhachHang khachHang = getCurrentKhachHang(authentication);
 
         DonHang donHang = donHangRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng"));
+                .orElseThrow(() -> new RuntimeException("KhÃ´ng tÃ¬m tháº¥y Ä‘Æ¡n hÃ ng"));
 
         if (!donHang.getKhachHang().getId().equals(khachHang.getId())) {
             return "redirect:/order/my-orders";
         }
 
+        BigDecimal tongTienSanPham = tinhTongTienDonHang(donHang);
+        BigDecimal phiVanChuyen = donHang.getPhiVanChuyen() != null ? donHang.getPhiVanChuyen() : BigDecimal.ZERO;
+
         model.addAttribute("order", donHang);
         model.addAttribute("orderDetails", donHang.getChiTietList());
+        model.addAttribute("tongTienSanPham", tongTienSanPham);
+        model.addAttribute("phiVanChuyen", phiVanChuyen);
         model.addAttribute("activeMenu", "orders");
 
         return "client/order-detail";
@@ -548,7 +651,7 @@ public class OrderClientController {
         KhachHang khachHang = getCurrentKhachHang(authentication);
 
         DonHang donHang = donHangRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn"));
+                .orElseThrow(() -> new RuntimeException("KhÃ´ng tÃ¬m tháº¥y Ä‘Æ¡n"));
 
         if (!donHang.getKhachHang().getId().equals(khachHang.getId())) {
             return "redirect:/order/my-orders";
@@ -561,7 +664,7 @@ public class OrderClientController {
         if ("DA_THANH_TOAN".equals(donHang.getTrangThaiThanhToan())) {
             for (DonHangChiTiet ct : donHang.getChiTietList()) {
                 SanPhamChiTiet spct = sanPhamChiTietRepository.findByIdForUpdate(ct.getSanPhamChiTiet().getId())
-                        .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm"));
+                        .orElseThrow(() -> new RuntimeException("KhÃ´ng tÃ¬m tháº¥y sáº£n pháº©m"));
 
                 spct.setSoLuong(spct.getSoLuong() + ct.getSoLuong());
                 sanPhamChiTietRepository.save(spct);
@@ -583,12 +686,16 @@ public class OrderClientController {
                                       boolean couponSuccess,
                                       BigDecimal tongTienGoc,
                                       BigDecimal tienGiam,
+                                      BigDecimal phiVanChuyen,
                                       BigDecimal tongThanhToan) {
 
         BigDecimal tongMacDinh = tinhTongTien(items);
 
         model.addAttribute("checkoutItems", items);
         model.addAttribute("khachHang", khachHang);
+
+        model.addAttribute("selectedIds",
+                request != null ? request.getSelectedIds() : items.stream().map(GioHangChiTiet::getId).toList());
 
         model.addAttribute("maKhuyenMai", request != null ? request.getMaKhuyenMai() : null);
         model.addAttribute("tenNguoiNhan", request != null ? request.getTenNguoiNhan() : null);
@@ -597,12 +704,19 @@ public class OrderClientController {
         model.addAttribute("ghiChu", request != null ? request.getGhiChu() : null);
         model.addAttribute("phuongThucThanhToan", request != null ? request.getPhuongThucThanhToan() : null);
 
+        model.addAttribute("tinhThanh", request != null ? request.getTinhThanh() : null);
+        model.addAttribute("phuongXa", request != null ? request.getPhuongXa() : null);
+
+        model.addAttribute("provinceCode", request != null ? request.getProvinceCode() : null);
+        model.addAttribute("wardCode", request != null ? request.getWardCode() : null);
+
         model.addAttribute("couponError", couponError);
         model.addAttribute("couponSuccess", couponSuccess);
 
         model.addAttribute("tongTien", tongMacDinh);
         model.addAttribute("tongTienGoc", tongTienGoc != null ? tongTienGoc : tongMacDinh);
         model.addAttribute("tienGiam", tienGiam != null ? tienGiam : BigDecimal.ZERO);
+        model.addAttribute("phiVanChuyen", phiVanChuyen != null ? phiVanChuyen : BigDecimal.ZERO);
         model.addAttribute("tongThanhToan", tongThanhToan != null ? tongThanhToan : tongMacDinh);
 
         String selectedCode = request != null ? request.getMaKhuyenMai() : null;
@@ -610,7 +724,6 @@ public class OrderClientController {
                 buildVoucherList(tongTienGoc != null ? tongTienGoc : tongMacDinh, selectedCode);
 
         model.addAttribute("voucherList", voucherList);
-
 
         return "client/checkout";
     }

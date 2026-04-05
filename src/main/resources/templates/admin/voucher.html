@@ -1,10 +1,80 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+<div  xmlns:th="http://www.thymeleaf.org" th:fragment="content">
 
-</body>
-</html>
+    <h2>Khuyến mãi</h2>
+
+    <div class="card">
+
+        <div class="card-header" style="display:flex;justify-content:space-between;align-items:center">
+            <h3>Danh sách khuyến mãi</h3>
+
+            <a th:href="@{/admin/voucher/create}" class="btn btn-primary">
+                + Thêm khuyến mãi
+            </a>
+        </div>
+
+        <div class="card-body">
+
+            <table class="table table-bordered table-striped">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Tên khuyến mãi</th>
+                    <th>Số lượng</th>
+                    <th>Giá trị giảm</th>
+                    <th>Ngày bắt đầu</th>
+                    <th>Ngày kết thúc</th>
+                    <th>Trạng thái</th>
+                    <th>Hành động</th>
+                </tr>
+                </thead>
+
+                <tbody>
+
+                <tr th:each="v : ${list}">
+                    <td th:text="${v.id}"></td>
+
+                    <td th:text="${v.tenKhuyenMai}"></td>
+
+                    <td th:text="${v.soLuong}"></td>
+
+                    <td th:text="${v.loaiGiam ? v.giaTriGiam + ' %' : #numbers.formatDecimal(v.giaTriGiam,0,'COMMA',0,'POINT') + ' đ'}"></td>
+
+                    <td th:text="${#temporals.format(v.ngayBatDau,'dd-MM-yyyy')}"></td>
+
+                    <td th:text="${#temporals.format(v.ngayKetThuc,'dd-MM-yyyy')}"></td>
+
+                    <td>
+                        <span th:if="${v.trangThai}" class="badge bg-success">Hoạt động</span>
+                        <span th:if="${!v.trangThai}" class="badge bg-danger">Ngừng</span>
+                    </td>
+
+                    <td>
+
+                        <a th:href="@{/admin/voucher/toggle/{id}(id=${v.id})}"
+                           class="btn btn-secondary btn-sm">
+                            Đổi trạng thái
+                        </a>
+
+                        <a th:href="@{/admin/voucher/edit/{id}(id=${v.id})}"
+                           class="btn btn-warning btn-sm">
+                            Sửa
+                        </a>
+
+                    </td>
+                </tr>
+
+                <tr th:if="${#lists.isEmpty(list)}">
+                    <td colspan="8" style="text-align:center">
+                        Chưa có khuyến mãi nào
+                    </td>
+                </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>

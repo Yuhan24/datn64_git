@@ -76,6 +76,9 @@ public class DonHang {
     @Column(name = "tien_giam", precision = 18, scale = 2)
     private BigDecimal tienGiam = BigDecimal.ZERO;
 
+    @Column(name = "phi_van_chuyen", precision = 18, scale = 2)
+    private BigDecimal phiVanChuyen;
+
     @OneToMany(mappedBy = "donHang", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     @JsonIgnoreProperties("donHang")

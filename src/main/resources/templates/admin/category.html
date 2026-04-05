@@ -1,0 +1,52 @@
+<section xmlns:th="http://www.thymeleaf.org" th:fragment="content">
+    <div class="card">
+        <h3 style="margin-top:0">Danh Mục </h3>
+
+        <div th:if="${success}" class="alert success" th:text="${success}"></div>
+        <div th:if="${error}" class="alert error" th:text="${error}"></div>
+
+        <form th:action="@{/admin/category/save}" method="post" th:object="${category}"
+              style="display:flex; gap:10px; align-items:end; margin-bottom:12px;">
+            <div style="flex:1">
+                <label>Tên Danh Mục </label>
+                <input class="input" type="text" th:field="*{tenDanhMuc}" required>
+            </div>
+            <button class="btn" type="submit">Thêm</button>
+        </form>
+
+        <table class="table">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Danh Mục</th>
+                <th>Trạng thái</th>
+                <th>Hành động</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            <tr th:each="dm : ${listCategory}">
+                <td th:text="${dm.id}"></td>
+                <td th:text="${dm.tenDanhMuc}"></td>
+
+                <td th:text="${dm.trangThai ? 'Hoạt động' : 'Ngừng'}"></td>
+
+                <td>
+                    <form th:action="@{'/admin/category/' + ${dm.id} + '/toggle-status'}"
+                          method="post" style="display:inline;">
+                        <input type="hidden" th:if="${_csrf != null}"
+                               th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
+                        <button type="submit"
+                                class="btn small"
+                                th:classappend="${dm.trangThai ? ' danger' : ' success'}"
+                                th:text="${dm.trangThai ? 'Ngừng' : 'Bật'}">
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+    </div>
+</section>

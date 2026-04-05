@@ -1,0 +1,63 @@
+<div  xmlns:th="http://www.thymeleaf.org" th:fragment="content">
+
+    <h2>Sửa khuyến mãi</h2>
+
+    <form th:action="@{/admin/voucher/update}" method="post" th:object="${voucher}">
+
+        <input type="hidden" th:field="*{id}">
+        <input type="hidden" th:field="*{trangThai}">
+
+        <div class="row g-3">
+
+            <div class="col-md-4">
+                <label>Mã khuyến mãi</label>
+                <input type="text" class="form-control" th:field="*{maKhuyenMai}" required>
+            </div>
+
+            <div class="col-md-4">
+                <label>Tên khuyến mãi</label>
+                <input type="text" class="form-control" th:field="*{tenKhuyenMai}" required>
+            </div>
+
+            <div class="col-md-4">
+                <label>Loại giảm</label>
+                <select class="form-control" th:field="*{loaiGiam}">
+                    <option th:value="true">Giảm theo %</option>
+                    <option th:value="false">Giảm tiền</option>
+                </select>
+            </div>
+
+            <div class="col-md-4">
+                <label>Giá trị giảm</label>
+                <input type="number"
+                       class="form-control"
+                       th:field="*{giaTriGiam}"
+                       step="0.01"
+                       required>
+            </div>
+
+            <div class="col-md-4">
+                <label>Số lượng</label>
+                <input type="number" class="form-control" th:field="*{soLuong}" required>
+            </div>
+
+            <div class="col-md-4">
+                <label>Ngày bắt đầu</label>
+                <input type="datetime-local" class="form-control" th:field="*{ngayBatDau}" required>
+            </div>
+
+            <div class="col-md-4">
+                <label>Ngày kết thúc</label>
+                <input type="datetime-local" class="form-control" th:field="*{ngayKetThuc}" required>
+            </div>
+
+        </div>
+
+        <br>
+
+        <button class="btn btn-success">Cập nhật</button>
+        <a th:href="@{/admin/voucher}" class="btn btn-secondary">Quay lại</a>
+
+    </form>
+
+</div>

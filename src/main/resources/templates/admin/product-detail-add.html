@@ -1,74 +1,95 @@
 <section xmlns:th="http://www.thymeleaf.org" th:fragment="content">
-    <div className="card" style="max-width:720px">
+    <div class="card" style="max-width:720px">
         <h3 style="margin-top:0">Thêm sản phẩm chi tiết</h3>
 
-        <div th:if="${error}" className="alert error" th:text="${error}"></div>
-        <div th:if="${success}" className="alert success" th:text="${success}"></div>
+        <div th:if="${error}" class="alert error" th:text="${error}"></div>
+        <div th:if="${success}" class="alert success" th:text="${success}"></div>
 
         <form th:action="@{/admin/product-detail/save}"
               method="post"
-              encType="multipart/form-data"
+              enctype="multipart/form-data"
               style="display:grid;gap:10px"
-              onSubmit="return validatePrice()">
+              onsubmit="return validateForm()">
 
             <label>Sản phẩm</label>
-            <select className="input" name="sanPhamId" required>
+            <select class="input" name="sanPhamId" required>
                 <option value="">-- Chọn --</option>
-                <option th:each="p : ${products}" th:value="${p.id}" th:text="${p.tenSanPham}"></option>
+                <option th:each="p : ${products}"
+                        th:value="${p.id}"
+                        th:text="${p.tenSanPham}">
+                </option>
             </select>
 
             <label>Kích cỡ</label>
-            <select className="input" name="kichCoId" required>
-                <option value="">-- Chọn --</option>
-                <option th:each="s : ${sizes}" th:value="${s.id}" th:text="${s.tenKichCo}"></option>
-            </select>
+            <div class="input" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:12px">
+                <label th:each="s : ${sizes}" style="display:flex;align-items:center;gap:6px;margin:0">
+                    <input type="checkbox" name="kichCoIds" th:value="${s.id}">
+                    <span th:text="${s.tenKichCo}"></span>
+                </label>
+            </div>
 
             <label>Màu sắc</label>
-            <select className="input" name="mauSacId" required>
-                <option value="">-- Chọn --</option>
-                <option th:each="c : ${colors}" th:value="${c.id}" th:text="${c.tenMau}"></option>
-            </select>
+            <div class="input" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:12px">
+                <label th:each="c : ${colors}" style="display:flex;align-items:center;gap:6px;margin:0">
+                    <input type="checkbox" name="mauSacIds" th:value="${c.id}">
+                    <span th:text="${c.tenMau}"></span>
+                </label>
+            </div>
 
             <label>Giá nhập</label>
-            <input className="input" type="number" step="0.01" min="1" name="giaNhap" required>
+            <input class="input" type="number" step="0.01" min="1" name="giaNhap" required>
 
             <label>Giá bán</label>
-            <input className="input" type="number" step="0.01" min="1" name="giaBan" required>
+            <input class="input" type="number" step="0.01" min="1" name="giaBan" required>
 
             <label>Số lượng nhập thêm</label>
-            <input className="input" type="number" min="1" name="soLuong" required>
+            <input class="input" type="number" min="1" name="soLuong" required>
 
             <small style="color:#666">
                 Nếu biến thể đã tồn tại, hệ thống sẽ cộng thêm số lượng thay vì tạo mới.
             </small>
 
-            <label>Ảnh của màu này (có thể chọn nhiều ảnh)</label>
-            <input className="input"
+            <label>Ảnh cho các màu đã chọn (có thể chọn nhiều ảnh)</label>
+            <input class="input"
                    type="file"
                    name="images"
                    accept="image/*"
                    multiple>
 
             <small style="color:#666">
-                Nếu chọn ảnh mới, hệ thống sẽ thay toàn bộ ảnh cũ của đúng màu này.
-                Nếu không chọn ảnh, hệ thống giữ nguyên ảnh màu đang có.
+                Ảnh hiện tại đang lưu theo màu. Nếu chọn ảnh mới, hệ thống sẽ thay toàn bộ ảnh cũ của từng màu được chọn.
             </small>
 
-            <input type="hidden" th:if="${_csrf != null}"
-                   th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+            <input type="hidden"
+                   th:if="${_csrf != null}"
+                   th:name="${_csrf.parameterName}"
+                   th:value="${_csrf.token}">
 
             <div style="display:flex;gap:10px">
-                <button className="btn success" type="submit">Lưu</button>
-                <a className="btn" th:href="@{/admin/product-detail}">Quay lại</a>
+                <button class="btn success" type="submit">Lưu</button>
+                <a class="btn" th:href="@{/admin/product-detail}">Quay lại</a>
             </div>
         </form>
     </div>
 
     <script>
-        function validatePrice() {
+        function validateForm() {
             const giaNhap = parseFloat(document.querySelector('[name="giaNhap"]').value || "0");
             const giaBan = parseFloat(document.querySelector('[name="giaBan"]').value || "0");
             const soLuong = parseInt(document.querySelector('[name="soLuong"]').value || "0");
+
+            const kichCoChecked = document.querySelectorAll('input[name="kichCoIds"]:checked').length;
+            const mauSacChecked = document.querySelectorAll('input[name="mauSacIds"]:checked').length;
+
+            if (kichCoChecked === 0) {
+                alert("Vui lòng chọn ít nhất 1 kích cỡ");
+                return false;
+            }
+
+            if (mauSacChecked === 0) {
+                alert("Vui lòng chọn ít nhất 1 màu sắc");
+                return false;
+            }
 
             if (giaNhap <= 0) {
                 alert("Giá nhập phải lớn hơn 0");
@@ -94,5 +115,3 @@
         }
     </script>
 </section>
-
-

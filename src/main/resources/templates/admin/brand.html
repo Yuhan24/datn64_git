@@ -1,0 +1,52 @@
+<section xmlns:th="http://www.thymeleaf.org" th:fragment="content">
+    <div class="card">
+        <h3 style="margin-top:0">Thương Hiệu</h3>
+
+        <div th:if="${success}" class="alert success" th:text="${success}"></div>
+        <div th:if="${error}" class="alert error" th:text="${error}"></div>
+
+        <form th:action="@{/admin/brand/save}" method="post" th:object="${brand}"
+              style="display:flex; gap:10px; align-items:end; margin-bottom:12px;">
+            <div style="flex:1">
+                <label>Tên thương hiệu</label>
+                <input class="input" type="text" th:field="*{tenThuongHieu}" required>
+            </div>
+            <button class="btn" type="submit">Thêm</button>
+        </form>
+
+        <table class="table">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Thương Hiệu</th>
+                <th>Trạng thái</th>
+                <th>Hành động</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            <tr th:each="th : ${listBrand}">
+                <td th:text="${th.id}"></td>
+                <td th:text="${th.tenThuongHieu}"></td>
+
+                <td th:text="${th.trangThai ? 'Hoạt động' : 'Ngừng'}"></td>
+
+                <td>
+                    <form th:action="@{'/admin/brand/' + ${th.id} + '/toggle-status'}"
+                          method="post" style="display:inline;">
+                        <input type="hidden" th:if="${_csrf != null}"
+                               th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
+                        <button type="submit"
+                                class="btn small"
+                                th:classappend="${th.trangThai ? ' danger' : ' success'}"
+                                th:text="${th.trangThai ? 'Ngừng' : 'Bật'}">
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+    </div>
+</section>

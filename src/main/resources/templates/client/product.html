@@ -2,104 +2,270 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Danh sách sản phẩm</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>HaLy - Trang chủ</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <link rel="stylesheet" th:href="@{/css/product-list-client.css}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
+
 <div th:replace="~{client/menu :: menu}"></div>
 
-<div class="container py-4">
-    <div class="row g-4 align-items-start">
+<div class="home-page">
+    <div class="container">
 
-        <!-- Nội dung sản phẩm -->
-        <div class="col-lg-9">
-            <div class="d-flex justify-content-between align-items-center flex-wrap top-bar">
-                <div>
-                    <h2 class="page-title">Danh sách sản phẩm</h2>
-                    <div class="result-count">
-                        Tổng:
-                        <span th:text="${products != null ? #lists.size(products) : 0}">0</span> sản phẩm
-                    </div>
-                </div>
+        <!-- BANNER -->
 
-                <div class="sort-box mt-3 mt-lg-0">
-                    <form method="get" th:action="@{/shop/product}" class="d-flex align-items-center gap-2">
 
-                        <input type="hidden" name="mauIds"
-                               th:each="m : ${selectedMauIds}"
-                               th:value="${m}">
-
-                        <input type="hidden" name="sizeIds"
-                               th:each="s : ${selectedSizeIds}"
-                               th:value="${s}">
-
-                        <input type="hidden" name="prices"
-                               th:each="p : ${selectedPrices}"
-                               th:value="${p}">
-
-                        <label class="fw-semibold mb-0">Sắp xếp:</label>
-
-                        <select name="sort" class="form-select w-auto" onchange="this.form.submit()">
-                            <option value="" th:selected="${selectedSort == null or selectedSort == ''}">Mặc định</option>
-                            <option value="gia-tang" th:selected="${selectedSort == 'gia-tang'}">Giá tăng dần</option>
-                            <option value="gia-giam" th:selected="${selectedSort == 'gia-giam'}">Giá giảm dần</option>
-                        </select>
-                    </form>
-                </div>
+        <!-- INTRO -->
+        <section class="intro-section">
+            <div class="intro-content">
+                <h2>HaLy Shirt</h2>
+                <p>
+                    Phong cách tối giản – hiện đại – dễ phối.
+                    Tập trung vào chất liệu và form dáng chuẩn.
+                </p>
             </div>
+        </section>
 
-            <div class="row g-4">
-                <div class="col-md-6 col-xl-4"
-                     th:each="p : ${products}"
-                     th:if="${p.chiTietList != null and !#lists.isEmpty(p.chiTietList)}">
-                    <div class="product-card">
 
-                        <div class="product-image-wrap">
-                            <a th:href="@{/shop/detail/{id}(id=${p.id})}">
-                                <img th:src="@{'/images/' + ${p.hinhAnh}}"
-                                     class="product-image"
-                                     alt="Ảnh sản phẩm">
-                            </a>
+
+        <!-- PRODUCT -->
+        <div class="product-grid" th:if="${products != null and !#lists.isEmpty(products)}">
+            <div class="product-card"
+                 th:each="p : ${products}"
+                 th:if="${p.chiTietList != null and !#lists.isEmpty(p.chiTietList)}">
+
+                <div class="product-image-wrap">
+                    <span class="product-badge">HaLy</span>
+
+                    <a th:href="@{/shop/detail/{id}(id=${p.id})}" class="product-image-link">
+                        <img th:src="@{'/images/' + ${p.hinhAnh}}" class="product-image">
+
+                        <div class="image-overlay">
+                            <span>Xem chi tiết</span>
                         </div>
+                    </a>
+                </div>
 
-                        <div class="p-3">
-                            <div class="product-name" th:text="${p.tenSanPham}">
-                                Tên sản phẩm
-                            </div>
+                <div class="product-body">
+                    <div class="product-category">Áo sơ mi nam</div>
 
-                            <div class="mb-3">
-                    <span class="price-current"
-                          th:text="${#numbers.formatDecimal(p.giaMacDinh,0,'COMMA',0,'POINT')} + 'đ'">
-                    </span>
-                            </div>
+                    <div class="product-name" th:text="${p.tenSanPham}"></div>
 
-                            <div class="product-actions d-grid gap-2">
-                                <a th:href="@{/shop/detail/{id}(id=${p.id})}"
-                                   class="btn btn-view">
-                                    Xem chi tiết
-                                </a>
+                    <div class="product-desc">
+                        Thiết kế tối giản, dễ phối đồ và phù hợp nhiều hoàn cảnh.
+                    </div>
 
-                                <a th:href="@{/shop/detail/{id}(id=${p.id})}"
-                                   class="btn btn-outline-dark">
-                                    Mua ngay
-                                </a>
-                            </div>
-                        </div>
+                    <div class="price-current"
+                         th:text="${#numbers.formatDecimal(p.giaMacDinh,0,'COMMA',0,'POINT')} + ' đ'">
+                    </div>
 
+                    <div class="product-meta">
+                        <span>Form hiện đại</span>
+                        <span>Dễ phối</span>
+                    </div>
+
+
+
+                        <a th:href="@{/shop/detail/{id}(id=${p.id})}" class="btn btn-buy">
+                            Mua ngay
+                        </a>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Bộ lọc bên phải -->
-        <div class="col-lg-3">
-            <div th:replace="~{client/filter :: filter}"></div>
+        <div class="empty-box" th:if="${products == null or #lists.isEmpty(products)}">
+            Chưa có sản phẩm
         </div>
 
     </div>
 </div>
+
+<style>
+    body{
+        background:#f8f8f8;
+        font-family: "Segoe UI", Arial;
+    }
+
+    /* HERO */
+    .hero-banner{
+        display:block;
+        height:520px;
+        border-radius:28px;
+        overflow:hidden;
+        box-shadow:0 10px 30px rgba(0,0,0,.06);
+    }
+
+    .hero-banner img{
+        width:100%;
+        height:100%;
+        object-fit:cover;
+        transition:.4s;
+    }
+
+    .hero-banner:hover img{
+        transform:scale(1.03);
+    }
+
+    /* INTRO */
+    .intro-section{
+        text-align:center;
+        margin:30px 0 40px;
+    }
+
+    .intro-content h2{
+        font-weight:800;
+    }
+
+    .intro-content p{
+        color:#666;
+    }
+
+    /* TITLE */
+    .section-title{
+        font-weight:800;
+    }
+
+    .section-subtitle{
+        color:#777;
+        font-size:14px;
+    }
+
+    /* GRID */
+    .product-grid{
+        display:grid;
+        grid-template-columns:repeat(3,1fr);
+        gap:24px;
+    }
+
+    /* CARD */
+    .product-card{
+        background:#fff;
+        border-radius:24px;
+        overflow:hidden;
+        box-shadow:0 10px 30px rgba(0,0,0,.06);
+        transition:.3s;
+        display:flex;
+        flex-direction:column;
+    }
+
+    .product-card:hover{
+        transform:translateY(-6px);
+    }
+
+    /* IMAGE */
+    .product-image-wrap{
+        position:relative;
+        height:300px;
+    }
+
+    .product-image{
+        width:100%;
+        height:100%;
+        object-fit:cover;
+    }
+
+    .image-overlay{
+        position:absolute;
+        inset:0;
+        background:rgba(0,0,0,.3);
+        display:flex;
+        align-items:end;
+        justify-content:center;
+        opacity:0;
+        transition:.3s;
+    }
+
+    .product-card:hover .image-overlay{
+        opacity:1;
+    }
+
+    .image-overlay span{
+        background:#fff;
+        padding:8px 16px;
+        border-radius:20px;
+        margin-bottom:14px;
+        font-weight:700;
+    }
+
+    .product-badge{
+        position:absolute;
+        top:10px;
+        left:10px;
+        background:#111;
+        color:#fff;
+        padding:5px 10px;
+        border-radius:20px;
+        font-size:12px;
+    }
+
+    /* BODY */
+    .product-body{
+        padding:16px;
+    }
+
+    .product-category{
+        font-size:12px;
+        color:#caa15b;
+        font-weight:700;
+    }
+
+    .product-name{
+        font-weight:800;
+        margin:6px 0;
+    }
+
+    .product-desc{
+        font-size:14px;
+        color:#666;
+    }
+
+    .price-current{
+        color:#caa15b;
+        font-weight:800;
+        margin:10px 0;
+    }
+
+    .product-meta span{
+        background:#f1f1f1;
+        padding:5px 10px;
+        border-radius:20px;
+        font-size:12px;
+    }
+
+    /* BUTTON */
+    .product-actions{
+        display:grid;
+        grid-template-columns:1fr 1fr;
+        gap:10px;
+        margin-top:10px;
+    }
+
+    .btn-view{
+        background:#111;
+        color:#fff;
+    }
+
+    .btn-buy{
+        border:1px solid #ccc;
+    }
+
+    .btn{
+        height:42px;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        border-radius:12px;
+        font-weight:700;
+    }
+
+    .empty-box{
+        text-align:center;
+        margin-top:40px;
+    }
+</style>
 
 </body>
 </html>

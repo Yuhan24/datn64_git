@@ -31,6 +31,16 @@ public class SanPhamService {
     }
 
     @Transactional(readOnly = true)
+    public List<ProductDTO> getProductsByCategoryName(String tenDanhMuc) {
+
+        List<SanPham> sanPhams = sanPhamRepository.findAllByTenDanhMuc(tenDanhMuc);
+
+        return sanPhams.stream()
+                .map(this::mapToDTO) // dùng lại logic DTO hiện tại của bạn
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
     public List<ProductDTO> filterProducts(List<Integer> mauIds,
                                            List<Integer> sizeIds,
                                            String price,

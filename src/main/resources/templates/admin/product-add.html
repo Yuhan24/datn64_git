@@ -1,52 +1,231 @@
 <section xmlns:th="http://www.thymeleaf.org" th:fragment="content">
+    <style>
+        * {
+            box-sizing: border-box;
+        }
 
-    <div class="card">
-        <h3>Thêm sản phẩm</h3>
+        .product-page {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #f8fafc, #eef2ff);
+            padding: 32px 16px;
+        }
 
-        <div th:if="${error}" class="alert error" th:text="${error}"></div>
-        <div th:if="${success}" class="alert success" th:text="${success}"></div>
+        .product-card {
+            max-width: 760px;
+            margin: 0 auto;
+            background: #ffffff;
+            border-radius: 20px;
+            padding: 32px;
+            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+            border: 1px solid #e5e7eb;
+        }
 
-        <form th:action="@{/admin/product/save}"
-              th:object="${sanPham}"
-              method="post">
+        .product-header {
+            margin-bottom: 24px;
+        }
 
-            <label>Mã sản phẩm</label>
-            <input type="text" th:field="*{maSanPham}">
+        .product-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #111827;
+            margin: 0 0 8px;
+        }
 
-            <label>Tên sản phẩm</label>
-            <input type="text" th:field="*{tenSanPham}">
+        .product-subtitle {
+            font-size: 14px;
+            color: #6b7280;
+            margin: 0;
+        }
 
-            <label>Chất liệu</label>
-            <input type="text" th:field="*{chatLieu}">
+        .alert {
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 14px;
+            margin-bottom: 18px;
+            font-weight: 500;
+        }
 
-            <label>Thương hiệu</label>
-            <select th:field="*{thuongHieu}">
-                <option value="">--Chọn--</option>
-                <option th:each="th : ${listThuongHieu}"
-                        th:value="${th.id}"
-                        th:text="${th.tenThuongHieu}">
-                </option>
-            </select>
+        .alert.error {
+            background: #fef2f2;
+            color: #b91c1c;
+            border: 1px solid #fecaca;
+        }
 
-            <label>Danh mục</label>
-            <select th:field="*{danhMuc}">
-                <option value="">--Chọn--</option>
-                <option th:each="dm : ${listDanhMuc}"
-                        th:value="${dm.id}"
-                        th:text="${dm.tenDanhMuc}">
-                </option>
-            </select>
+        .alert.success {
+            background: #ecfdf5;
+            color: #047857;
+            border: 1px solid #a7f3d0;
+        }
 
-            <label>Mô tả</label>
-            <textarea th:field="*{moTa}" rows="4"></textarea>
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px 20px;
+        }
 
-            <input type="hidden" th:if="${_csrf != null}"
-                   th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
 
-            <div style="display:flex;gap:10px;margin-top:16px">
-                <button class="btn success" type="submit">Lưu</button>
-                <a class="btn" th:href="@{/admin/product}">Quay lại</a>
+        .form-group.full {
+            grid-column: 1 / -1;
+        }
+
+        .form-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid #d1d5db;
+            border-radius: 12px;
+            font-size: 15px;
+            color: #111827;
+            background: #fff;
+            outline: none;
+            transition: all 0.25s ease;
+        }
+
+        .form-control:focus {
+            border-color: #6366f1;
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.12);
+        }
+
+        textarea.form-control {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 28px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+
+        .btn-primary {
+            background: #4f46e5;
+            color: #fff;
+            box-shadow: 0 8px 20px rgba(79, 70, 229, 0.25);
+        }
+
+        .btn-primary:hover {
+            background: #4338ca;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: #f3f4f6;
+            color: #374151;
+            border: 1px solid #d1d5db;
+        }
+
+        .btn-secondary:hover {
+            background: #e5e7eb;
+        }
+
+        @media (max-width: 768px) {
+            .product-card {
+                padding: 22px;
+                border-radius: 16px;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .product-title {
+                font-size: 24px;
+            }
+        }
+    </style>
+
+    <div class="product-page">
+        <div class="product-card">
+            <div class="product-header">
+                <h3 class="product-title">Thêm sản phẩm</h3>
+                <p class="product-subtitle">Điền thông tin sản phẩm vào biểu mẫu bên dưới.</p>
             </div>
-        </form>
+
+            <div th:if="${error}" class="alert error" th:text="${error}"></div>
+            <div th:if="${success}" class="alert success" th:text="${success}"></div>
+
+            <form th:action="@{/admin/product/save}"
+                  th:object="${sanPham}"
+                  method="post">
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Mã sản phẩm</label>
+                        <input class="form-control" type="text" th:field="*{maSanPham}" placeholder="Nhập mã sản phẩm">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Tên sản phẩm</label>
+                        <input class="form-control" type="text" th:field="*{tenSanPham}" placeholder="Nhập tên sản phẩm">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Chất liệu</label>
+                        <input class="form-control" type="text" th:field="*{chatLieu}" placeholder="Nhập chất liệu">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Thương hiệu</label>
+                        <select class="form-control" th:field="*{thuongHieu}">
+                            <option value="">-- Chọn thương hiệu --</option>
+                            <option th:each="th : ${listThuongHieu}"
+                                    th:value="${th.id}"
+                                    th:text="${th.tenThuongHieu}">
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Danh mục</label>
+                        <select class="form-control" th:field="*{danhMuc}">
+                            <option value="">-- Chọn danh mục --</option>
+                            <option th:each="dm : ${listDanhMuc}"
+                                    th:value="${dm.id}"
+                                    th:text="${dm.tenDanhMuc}">
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="form-group full">
+                        <label class="form-label">Mô tả</label>
+                        <textarea class="form-control" th:field="*{moTa}" rows="4" placeholder="Nhập mô tả sản phẩm"></textarea>
+                    </div>
+                </div>
+
+                <input type="hidden" th:if="${_csrf != null}"
+                       th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
+                <div class="form-actions">
+                    <a class="btn btn-secondary" th:href="@{/admin/product}">Quay lại</a>
+                    <button class="btn btn-primary" type="submit">Lưu sản phẩm</button>
+                </div>
+            </form>
+        </div>
     </div>
 </section>

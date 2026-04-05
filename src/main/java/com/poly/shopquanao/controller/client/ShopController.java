@@ -61,6 +61,48 @@ public class ShopController {
         return "client/product";
     }
 
+    @GetMapping("/category/ao-ngan-tay")
+    public String aoNganTay(Model model) {
+        model.addAttribute("products", sanPhamService.getProductsByCategoryName("Áo sơ mi ngắn tay"));
+        model.addAttribute("activeMenu", "ao-ngan-tay");
+
+        model.addAttribute("selectedMauIds", null);
+        model.addAttribute("selectedSizeIds", null);
+        model.addAttribute("selectedPrice", null);
+        model.addAttribute("selectedSort", null);
+
+        model.addAttribute("categoryTitle", "Áo ngắn tay");
+        return "client/product";
+    }
+
+    @GetMapping("/category/ao-dai-tay")
+    public String aoDaiTay(Model model) {
+        model.addAttribute("products", sanPhamService.getProductsByCategoryName("Áo sơ mi dài tay"));
+        model.addAttribute("activeMenu", "ao-dai-tay");
+
+        model.addAttribute("selectedMauIds", null);
+        model.addAttribute("selectedSizeIds", null);
+        model.addAttribute("selectedPrice", null);
+        model.addAttribute("selectedSort", null);
+
+        model.addAttribute("categoryTitle", "Áo dài tay");
+        return "client/product";
+    }
+
+    @GetMapping("/category/polo")
+    public String polo(Model model) {
+        model.addAttribute("products", sanPhamService.getProductsByCategoryName("Áo polo"));
+        model.addAttribute("activeMenu", "polo");
+
+        model.addAttribute("selectedMauIds", null);
+        model.addAttribute("selectedSizeIds", null);
+        model.addAttribute("selectedPrice", null);
+        model.addAttribute("selectedSort", null);
+
+        model.addAttribute("categoryTitle", "Polo");
+        return "client/product";
+    }
+
     @GetMapping("/contact")
     public String contact(Model model) {
         model.addAttribute("activeMenu", "contact");

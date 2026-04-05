@@ -31,4 +31,8 @@ public class GioHangChiTiet {
 
     @Column(name = "so_luong", nullable = false)
     private Integer soLuong;
+
+    @Transient
+    private String hinhAnh;
+
 }

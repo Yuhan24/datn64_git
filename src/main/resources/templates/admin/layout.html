@@ -82,6 +82,12 @@
                     <a th:href="@{/admin/size}"
                        th:classappend="${activeMenu}=='size' ? ' active' : ''">Kích thước</a>
 
+                    <a th:href="@{/admin/brand}"
+                       th:classappend="${activeMenu}=='brand' ? ' active' : ''">Thướng hiệu</a>
+
+                    <a th:href="@{/admin/category}"
+                       th:classappend="${activeMenu}=='category' ? ' active' : ''">Danh mục</a>
+
                 </div>
             </details>
             <!-- ==================== NHÓM: QUẢN LÝ ==================== -->
@@ -91,6 +97,11 @@
             <a th:href="@{/admin/employee}" th:classappend="${activeMenu}=='employee' ? ' active' : ''">
                 <span class="dot"></span> Nhân viên
             </a>
+
+            <a th:href="@{/admin/voucher}" th:classappend="${activeMenu}=='voucher' ? ' active' : ''">
+                <span class="dot"></span> Khuyến Mãi
+            </a>
+
 
             <!-- Menu: Khách hàng -->
             <a th:href="@{/admin/customer}" th:classappend="${activeMenu}=='customer' ? ' active' : ''">

@@ -78,8 +78,6 @@ public class OrderOnlineController {
         return "admin/layout";
     }
 
-
-
     @PostMapping("/{id}/confirm")
     @Transactional
     public String confirm(@PathVariable Integer id,
@@ -115,10 +113,30 @@ public class OrderOnlineController {
             }
         }
 
-        for (DonHangChiTiet ct : chiTietList) {
-            SanPhamChiTiet spct = ct.getSanPhamChiTiet();
-            spct.setSoLuong(spct.getSoLuong() - ct.getSoLuong());
-            sanPhamChiTietADMRepository.save(spct);
+        boolean daThanhToan1 = "DA_THANH_TOAN".equalsIgnoreCase(donHang.getTrangThaiThanhToan());
+
+// COD → trừ kho khi confirm
+        if (!daThanhToan1) {
+
+            for (DonHangChiTiet ct : chiTietList) {
+                SanPhamChiTiet spct = ct.getSanPhamChiTiet();
+
+                if (spct.getSoLuong() < ct.getSoLuong()) {
+                    ra.addFlashAttribute("error",
+                            "Sản phẩm " + spct.getSanPham().getTenSanPham() + " không đủ tồn kho");
+                    return "redirect:/admin/order-onl/detail/" + id;
+                }
+            }
+
+            for (DonHangChiTiet ct : chiTietList) {
+                SanPhamChiTiet spct = ct.getSanPhamChiTiet();
+                spct.setSoLuong(spct.getSoLuong() - ct.getSoLuong());
+                sanPhamChiTietADMRepository.save(spct);
+            }
+
+        } else {
+            // Online → chỉ xác nhận, không đụng kho
+            ra.addFlashAttribute("success", "Đơn đã thanh toán - không trừ kho");
         }
 
         if (authentication != null) {
@@ -132,6 +150,9 @@ public class OrderOnlineController {
         ra.addFlashAttribute("success", "Đơn hàng đã được xác nhận");
         return "redirect:/admin/order-onl/detail/" + id;
     }
+
+
+
 
     @PostMapping("/{id}/complete")
     public String complete(@PathVariable Integer id,
@@ -181,19 +202,30 @@ public class OrderOnlineController {
     public String cancel(@PathVariable Integer id, RedirectAttributes ra) {
         DonHang donHang = donHangADRepository.findById(id).orElseThrow();
 
+        if (donHang.getTrangThaiId() == 4) {
+            ra.addFlashAttribute("error", "Đơn hàng đã hủy trước đó");
+            return "redirect:/admin/order-onl/detail/" + id;
+        }
+
         if (donHang.getTrangThaiId() == 3) {
             ra.addFlashAttribute("error", "Đơn hoàn thành không thể hủy");
             return "redirect:/admin/order-onl/detail/" + id;
         }
 
-        if (donHang.getTrangThaiId() == 4) {
-            ra.addFlashAttribute("error", "Đơn hàng đã hủy trước đó");
+        if (donHang.getTrangThaiId() != 1) {
+            ra.addFlashAttribute("error", "Chỉ được hủy đơn khi đang chờ xác nhận");
             return "redirect:/admin/order-onl/detail/" + id;
         }
-        donHang.setTrangThaiId(4); // đã hủy
+
+        if ("DA_THANH_TOAN".equalsIgnoreCase(donHang.getTrangThaiThanhToan())) {
+            ra.addFlashAttribute("error", "Đơn đã thanh toán, không thể hủy");
+            return "redirect:/admin/order-onl/detail/" + id;
+        }
+
+        donHang.setTrangThaiId(4);
         donHangADRepository.save(donHang);
 
-        ra.addFlashAttribute("success", "Đã hủy đơn hàng và hoàn lại số lượng vào kho");
+        ra.addFlashAttribute("success", "Đã hủy đơn hàng");
         return "redirect:/admin/order-onl/detail/" + id;
     }
 }

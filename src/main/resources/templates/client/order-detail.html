@@ -125,22 +125,36 @@
         </tbody>
     </table>
 
-    <p th:if="${order.khuyenMai != null}">
-        <strong>Mã giảm giá:</strong>
-        <span th:text="${order.khuyenMai.maKhuyenMai}"></span>
-    </p>
+    <div class="card p-4 mt-4">
+        <h5 class="mb-3">Tóm tắt thanh toán</h5>
 
-    <p>
-        <strong>Tiền giảm:</strong>
-        <span class="text-success"
-              th:text="${#numbers.formatDecimal(order.tienGiam != null ? order.tienGiam : 0,0,'COMMA',0,'POINT')} + ' VND'"></span>
-    </p>
+        <p>
+            <strong>Tạm tính sản phẩm:</strong>
+            <span th:text="${#numbers.formatDecimal(tongTienSanPham,0,'COMMA',0,'POINT')} + ' VND'"></span>
+        </p>
 
-    <p>
-        <strong>Tổng thanh toán:</strong>
-        <span class="text-danger fw-bold"
-              th:text="${#numbers.formatDecimal(order.tongTien,0,'COMMA',0,'POINT')} + ' VND'"></span>
-    </p>
+        <p th:if="${order.khuyenMai != null}">
+            <strong>Mã giảm giá:</strong>
+            <span th:text="${order.khuyenMai.maKhuyenMai}"></span>
+        </p>
+
+        <p>
+            <strong>Tiền giảm:</strong>
+            <span class="text-success"
+                  th:text="${#numbers.formatDecimal(order.tienGiam != null ? order.tienGiam : 0,0,'COMMA',0,'POINT')} + ' VND'"></span>
+        </p>
+
+        <p>
+            <strong>Phí vận chuyển:</strong>
+            <span th:text="${#numbers.formatDecimal(phiVanChuyen,0,'COMMA',0,'POINT')} + ' VND'"></span>
+        </p>
+
+        <p class="mb-0">
+            <strong>Tổng thanh toán:</strong>
+            <span class="text-danger fw-bold"
+                  th:text="${#numbers.formatDecimal(order.tongTien,0,'COMMA',0,'POINT')} + ' VND'"></span>
+        </p>
+    </div>
 </div>
 
 </body>

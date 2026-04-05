@@ -30,6 +30,20 @@ public interface SanPhamRepository extends JpaRepository<SanPham, Integer> {
         left join fetch ct.kichCo
         left join fetch sp.hinhAnhList ha
         left join fetch ha.mauSac
+        left join fetch sp.danhMuc dm
+        where sp.trangThai = true
+          and dm.tenDanhMuc = :tenDanhMuc
+    """)
+    List<SanPham> findAllByTenDanhMuc(@Param("tenDanhMuc") String tenDanhMuc);
+
+    @Query("""
+        select distinct sp
+        from SanPham sp
+        left join fetch sp.chiTietList ct
+        left join fetch ct.mauSac
+        left join fetch ct.kichCo
+        left join fetch sp.hinhAnhList ha
+        left join fetch ha.mauSac
         where sp.trangThai = true
 
           and (

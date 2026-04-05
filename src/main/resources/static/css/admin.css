@@ -17,11 +17,13 @@ body{
     color:var(--text);
 }
 
+
 .app{
     display:grid;
     grid-template-columns:280px 1fr;
     min-height:100vh;
 }
+
 
 /* SIDEBAR */
 .sidebar{
@@ -44,6 +46,7 @@ body{
     background:rgba(79,140,255,.25);
 }
 .muted{color:var(--muted); font-size:12px}
+
 
 .group{
     margin:14px 10px 6px;
@@ -74,6 +77,7 @@ body{
 .dot{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.18)}
 .menu a.active .dot{background:var(--primary)}
 
+
 /* MAIN */
 .main{
     padding:16px;
@@ -95,12 +99,14 @@ body{
     background:rgba(255,255,255,.03);
 }
 
+
 .card{
     border:1px solid var(--line);
     border-radius:16px;
     background:rgba(255,255,255,.03);
     padding:14px;
 }
+
 
 .btn{
     border:1px solid var(--line);
@@ -116,6 +122,7 @@ body{
 .btn.danger{ background:rgba(255,90,106,.14); border-color:rgba(255,90,106,.35) }
 .btn.small{ padding:8px 10px; font-size:12px }
 
+
 .input{
     width:100%;
     border:1px solid var(--line);
@@ -125,6 +132,7 @@ body{
     padding:10px 12px;
     outline:none;
 }
+
 
 .table{
     width:100%;
@@ -136,6 +144,7 @@ body{
     border-bottom:1px solid var(--line);
 }
 .table th{ color:var(--muted); text-align:left }
+
 
 /* POS */
 .pos-grid{
@@ -184,6 +193,7 @@ body{
     font-size:16px;
 }
 
+
 @media(max-width:1100px){
     .pos-grid{ grid-template-columns:1fr }
     .products-grid{ grid-template-columns: repeat(2, 1fr); }
@@ -203,6 +213,7 @@ body{
 .nav-group summary:hover { background: rgba(255,255,255,.04); border-color: var(--line); }
 .nav-group[open] summary { background: rgba(79,140,255,.12); border-color: rgba(79,140,255,.25); }
 
+
 .nav-children { padding: 6px 0 6px 18px; }
 .nav-children a {
     display:block;
@@ -216,9 +227,11 @@ body{
 .nav-children a:hover { background: rgba(255,255,255,.04); border-color: var(--line); }
 .nav-children a.active { background: rgba(79,140,255,.18); border-color: rgba(79,140,255,.35); }
 
+
 .alert { padding:10px 12px; border-radius:12px; margin:10px 0; border:1px solid transparent; }
 .alert.success { border-color: rgba(0,200,120,.35); }
 .alert.error { border-color: rgba(255,80,80,.35); }
+
 
 .product-header{
     display:flex;
@@ -228,10 +241,12 @@ body{
     margin-bottom:15px;
 }
 
+
 .search-form{
     display:flex;
     gap:10px;
 }
+
 
 .search-form .input{
     width:250px;
@@ -244,11 +259,13 @@ body{
     flex-wrap:wrap;
 }
 
+
 .pos-page{
     display:flex;
     flex-direction:column;
     gap:16px;
 }
+
 
 .pos-topbar{
     display:flex;
@@ -260,19 +277,23 @@ body{
     padding:14px;
 }
 
+
 .pos-search-box{
     flex:1;
 }
+
 
 .pos-search-input{
     height:46px;
     font-size:15px;
 }
 
+
 .pos-top-actions{
     display:flex;
     gap:10px;
 }
+
 
 .pos-layout{
     display:grid;
@@ -281,6 +302,7 @@ body{
     align-items:start;
 }
 
+
 .pos-left,
 .pos-right{
     display:flex;
@@ -288,9 +310,11 @@ body{
     gap:16px;
 }
 
+
 .pos-cart-card{
     min-height:120px;
 }
+
 
 .empty-cart{
     min-height:80px;
@@ -301,9 +325,11 @@ body{
     font-size:16px;
 }
 
+
 .pos-product-card{
     min-height:400px;
 }
+
 
 .section-title{
     margin:0 0 14px 0;
@@ -312,12 +338,14 @@ body{
     color:var(--text);
 }
 
+
 .pos-filter-grid{
     display:grid;
     grid-template-columns: repeat(4, 1fr);
     gap:14px;
     margin-bottom:14px;
 }
+
 
 .pos-filter-grid label,
 .right-block label{
@@ -327,14 +355,17 @@ body{
     color:var(--text);
 }
 
+
 .table-wrap{
     overflow:auto;
 }
+
 
 .pos-table th,
 .pos-table td{
     vertical-align:middle;
 }
+
 
 .pos-payment-card{
     position:sticky;
@@ -344,17 +375,20 @@ body{
     gap:16px;
 }
 
+
 .right-block{
     display:flex;
     flex-direction:column;
     gap:8px;
 }
 
+
 .customer-search{
     display:grid;
     grid-template-columns: 1fr 60px;
     gap:8px;
 }
+
 
 .money-line{
     display:flex;
@@ -363,11 +397,13 @@ body{
     font-size:16px;
 }
 
+
 .total-pay{
     font-size:28px;
     font-weight:800;
     color:var(--text);
 }
+
 
 .pos-pay-btn{
     width:100%;
@@ -375,25 +411,30 @@ body{
     font-size:16px;
 }
 
+
 @media (max-width: 1100px){
     .pos-layout{
         grid-template-columns: 1fr;
     }
+
 
     .pos-filter-grid{
         grid-template-columns: repeat(2, 1fr);
     }
 }
 
+
 @media (max-width: 700px){
     .pos-filter-grid{
         grid-template-columns: 1fr;
     }
 
+
     .pos-topbar{
         flex-direction:column;
         align-items:stretch;
     }
+
 
     .customer-search{
         grid-template-columns: 1fr;
@@ -404,6 +445,7 @@ body{
     gap:10px;
     flex-wrap:wrap;
 }
+
 
 .waiting-order-item{
     min-width:140px;
@@ -418,15 +460,18 @@ body{
     gap:6px;
 }
 
+
 .waiting-order-item.active{
     border-color:var(--primary);
     background:#f3f7ff;
 }
 
+
 .waiting-order-code{
     font-weight:700;
     font-size:14px;
 }
+
 
 .waiting-order-time{
     font-size:13px;
@@ -438,10 +483,12 @@ body{
     margin:auto;
 }
 
+
 .form-title{
     margin-bottom:20px;
     font-size:22px;
 }
+
 
 .product-form{
     display:flex;
@@ -449,11 +496,13 @@ body{
     gap:20px;
 }
 
+
 .form-grid{
     display:grid;
     grid-template-columns:1fr 1fr;
     gap:20px;
 }
+
 
 .form-group{
     display:flex;
@@ -461,9 +510,11 @@ body{
     gap:6px;
 }
 
+
 .form-group.full{
     grid-column:1 / -1;
 }
+
 
 .input{
     padding:10px;
@@ -472,15 +523,18 @@ body{
     font-size:14px;
 }
 
+
 .input:focus{
     outline:none;
     border-color:#2563eb;
 }
 
+
 .form-actions{
     display:flex;
     gap:10px;
 }
+
 
 .btn{
     padding:10px 16px;
@@ -490,10 +544,12 @@ body{
     cursor:pointer;
 }
 
+
 .btn.primary{
     background:#2563eb;
     color:white;
 }
+
 
 .btn:hover{
     opacity:0.9;
@@ -505,3 +561,254 @@ body{
     align-items:center;
     flex-wrap:wrap;
 }
+/* ==================== DASHBOARD STATS ==================== */
+
+
+/* Grid 4 cột cho các card thống kê */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+}
+
+
+/* Card thống kê: icon + số + label */
+.stat-card {
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 20px;
+    text-align: center;
+    background: rgba(255,255,255,.03);
+    transition: transform .15s, box-shadow .15s; /* hiệu ứng hover mượt */
+}
+
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(0,0,0,.3);
+}
+
+
+/* Icon emoji lớn */
+.stat-icon {
+    font-size: 28px;
+    margin-bottom: 6px;
+}
+
+
+/* Số liệu chính – to, đậm */
+.stat-number {
+    font-size: 26px;
+    font-weight: 900;
+    margin-bottom: 4px;
+}
+
+
+/* Nhãn mô tả */
+.stat-label {
+    color: var(--muted);
+    font-size: 13px;
+}
+
+
+/* Màu border cho từng loại card */
+.stat-card.blue   { border-color: rgba(79,140,255,.4);  }
+.stat-card.green  { border-color: rgba(33,196,122,.4);  }
+.stat-card.orange { border-color: rgba(255,165,0,.4);   }
+.stat-card.purple { border-color: rgba(160,100,255,.4); }
+.stat-card.yellow { border-color: rgba(255,210,50,.4);  }
+.stat-card.red    { border-color: rgba(255,90,106,.4);  }
+
+
+/* Responsive: 2 cột trên tablet */
+@media (max-width: 1000px) {
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+}
+/* Responsive: 1 cột trên mobile */
+@media (max-width: 600px) {
+    .stats-grid { grid-template-columns: 1fr; }
+}
+
+
+/* ==================== BADGE TRẠNG THÁI ==================== */
+
+
+/* Badge nhỏ hiển thị trạng thái đơn hàng */
+.badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    border: 1px solid var(--line);
+}
+
+
+.badge-warning { border-color: rgba(255,210,50,.5); color: #ffd232; }   /* Chờ xác nhận */
+.badge-info    { border-color: rgba(79,140,255,.5); color: #4f8cff; }   /* Đang giao */
+.badge-success { border-color: rgba(33,196,122,.5); color: #21c47a; }   /* Hoàn thành */
+.badge-danger  { border-color: rgba(255,90,106,.5); color: #ff5a6a; }   /* Đã hủy */
+
+
+/* ==================== SELECT DROPDOWN ==================== */
+
+
+/* Style cho select giống input */
+select.input {
+    appearance: none;
+    -webkit-appearance: none;
+    cursor: pointer;
+}
+
+
+/* ==================== TOAST THÔNG BÁO ==================== */
+
+
+/* Toast hiển thị ở góc trên bên phải, tự ẩn sau 3 giây */
+.toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+    padding: 14px 24px;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 14px;
+    box-shadow: 0 8px 32px rgba(0,0,0,.4);
+    transition: opacity 0.3s, transform 0.3s;   /* animation mượt khi ẩn */
+    display: block;
+    max-width: 400px;
+}
+
+
+/* Toast thành công – viền xanh lá */
+.toast-success {
+    background: rgba(33, 196, 122, 0.15);
+    border: 1px solid rgba(33, 196, 122, 0.5);
+    color: #21c47a;
+}
+
+
+/* Toast lỗi – viền đỏ */
+.toast-error {
+    background: rgba(255, 90, 106, 0.15);
+    border: 1px solid rgba(255, 90, 106, 0.5);
+    color: #ff5a6a;
+}
+
+
+/* ==================== LOW-STOCK BADGES ==================== */
+
+
+.stock-danger {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    background: rgba(220, 38, 38, 0.12);
+    border: 1px solid rgba(220, 38, 38, 0.4);
+    color: #dc2626;
+}
+
+
+.stock-warning {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    background: rgba(217, 119, 6, 0.12);
+    border: 1px solid rgba(217, 119, 6, 0.4);
+    color: #d97706;
+}
+
+
+/* Card thống kê 5 cột (khi thêm card hết hàng) */
+.stats-grid-5 {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 14px;
+}
+
+
+@media (max-width: 1200px) {
+    .stats-grid-5 { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 800px) {
+    .stats-grid-5 { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 500px) {
+    .stats-grid-5 { grid-template-columns: 1fr; }
+}
+
+
+/* Low stock summary cards */
+.lowstock-summary {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin-bottom: 14px;
+}
+
+
+@media (max-width: 800px) {
+    .lowstock-summary { grid-template-columns: 1fr; }
+}
+
+
+.lowstock-card {
+    border-radius: 12px;
+    padding: 16px;
+    text-align: center;
+}
+
+
+.lowstock-card .num {
+    font-size: 28px;
+    font-weight: 900;
+}
+
+
+.lowstock-card .label {
+    font-size: 13px;
+    margin-top: 4px;
+}
+
+
+.lowstock-danger {
+    background: rgba(220, 38, 38, 0.08);
+    border: 1px solid rgba(220, 38, 38, 0.3);
+}
+.lowstock-danger .num { color: #dc2626; }
+.lowstock-danger .label { color: #991b1b; }
+
+
+.lowstock-warn {
+    background: rgba(217, 119, 6, 0.08);
+    border: 1px solid rgba(217, 119, 6, 0.3);
+}
+.lowstock-warn .num { color: #d97706; }
+.lowstock-warn .label { color: #92400e; }
+
+
+.lowstock-total {
+    background: rgba(79, 140, 255, 0.08);
+    border: 1px solid rgba(79, 140, 255, 0.3);
+}
+.lowstock-total .num { color: #4f8cff; }
+.lowstock-total .label { color: #1e40af; }
+
+
+/* Stock quantity highlight */
+.stock-qty-zero {
+    color: #dc2626;
+    font-weight: 700;
+}
+.stock-qty-low {
+    color: #d97706;
+    font-weight: 700;
+}
+
+
+

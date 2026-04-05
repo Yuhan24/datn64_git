@@ -23,6 +23,8 @@ public class CartServiceImpl implements CartService {
     private final GioHangChiTietRepository chiTietRepo;
     private final SanPhamChiTietRepository sanPhamChiTietRepo;
 
+
+
     @Override
     public void addToCart(Integer khachHangId, Integer sanPhamChiTietId, Integer soLuong) {
 
@@ -88,6 +90,8 @@ public class CartServiceImpl implements CartService {
 
         List<GioHangChiTiet> items = chiTietRepo.findByGioHang_Id(gioHangId);
 
+        List<GioHangChiTiet> validItems = new java.util.ArrayList<>();
+
         for (GioHangChiTiet item : items) {
 
             int tonKho = item.getSanPhamChiTiet().getSoLuong() == null
@@ -105,9 +109,49 @@ public class CartServiceImpl implements CartService {
                 item.setSoLuong(tonKho);
                 chiTietRepo.save(item);
             }
+
+            // ===== xử lý ảnh sản phẩm =====
+            var spct = item.getSanPhamChiTiet();
+            var sp = spct.getSanPham();
+            var mauSac = spct.getMauSac();
+
+            String hinhAnh = null;
+
+            if (sp != null && sp.getHinhAnhList() != null && !sp.getHinhAnhList().isEmpty()) {
+
+                // 1. ưu tiên ảnh theo màu
+                if (mauSac != null) {
+                    for (var img : sp.getHinhAnhList()) {
+                        if (img.getMauSac() != null
+                                && img.getMauSac().getId().equals(mauSac.getId())) {
+                            hinhAnh = img.getDuongDanAnh();
+                            break;
+                        }
+                    }
+                }
+
+                // 2. không có ảnh theo màu thì lấy ảnh chung
+                if (hinhAnh == null) {
+                    for (var img : sp.getHinhAnhList()) {
+                        if (img.getMauSac() == null) {
+                            hinhAnh = img.getDuongDanAnh();
+                            break;
+                        }
+                    }
+                }
+
+                // 3. vẫn không có thì lấy ảnh đầu tiên
+//                if (hinhAnh == null) {
+//                    hinhAnh = sp.getHinhAnhList().get(0).getDuongDanAnh();
+//                }
+            }
+
+            item.setHinhAnh(hinhAnh != null ? hinhAnh : "default.png");
+
+            validItems.add(item);
         }
 
-        return chiTietRepo.findByGioHang_Id(gioHangId);
+        return validItems;
     }
 
     @Override

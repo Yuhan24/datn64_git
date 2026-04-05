@@ -1,12 +1,11 @@
 package com.poly.shopquanao.dto.client;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
+import java.math.BigDecimal;
 import java.util.List;
 
-@Getter
-@Setter
+@Data
 public class CheckoutRequest {
     private List<Integer> selectedIds;
 
@@ -14,7 +13,14 @@ public class CheckoutRequest {
     private String soDienThoai;
     private String diaChiGiaoHang;
     private String ghiChu;
-
     private String phuongThucThanhToan;
     private String maKhuyenMai;
+
+    private String tinhThanh;
+    private String phuongXa;
+
+    private String provinceCode;
+    private String wardCode;
+
+    private BigDecimal phiVanChuyen;
 }

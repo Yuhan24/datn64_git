@@ -17,6 +17,11 @@
             <strong th:text="${order.maDonHang}"></strong>
         </p>
 
+        <p>
+            Tạm tính sản phẩm:
+            <strong th:text="${#numbers.formatDecimal(tongTienSanPham,0,'COMMA',0,'POINT')} + ' VND'"></strong>
+        </p>
+
         <p th:if="${order.khuyenMai != null}">
             Mã giảm giá:
             <strong th:text="${order.khuyenMai.maKhuyenMai}"></strong>
@@ -26,6 +31,11 @@
             Tiền giảm:
             <strong class="text-success"
                     th:text="${#numbers.formatDecimal(order.tienGiam != null ? order.tienGiam : 0,0,'COMMA',0,'POINT')} + ' VND'"></strong>
+        </p>
+
+        <p>
+            Phí vận chuyển:
+            <strong th:text="${#numbers.formatDecimal(phiVanChuyen,0,'COMMA',0,'POINT')} + ' VND'"></strong>
         </p>
 
         <p>

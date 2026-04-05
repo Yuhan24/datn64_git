@@ -1,15 +1,7 @@
 package com.poly.shopquanao.controller.admin;
 
-import com.poly.shopquanao.entity.KichCo;
-import com.poly.shopquanao.entity.MauSac;
-import com.poly.shopquanao.entity.SanPham;
-import com.poly.shopquanao.entity.SanPhamChiTiet;
-import com.poly.shopquanao.entity.SanPhamHinhAnh;
-import com.poly.shopquanao.repository.admin.KichCoRepository;
-import com.poly.shopquanao.repository.admin.MauSacRepository;
-import com.poly.shopquanao.repository.admin.SanPhamADMRepository;
-import com.poly.shopquanao.repository.admin.SanPhamChiTietADMRepository;
-import com.poly.shopquanao.repository.admin.SanPhamHinhAnhRepository;
+import com.poly.shopquanao.entity.*;
+import com.poly.shopquanao.repository.admin.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -17,11 +9,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -31,10 +19,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.Arrays;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Controller
 @RequestMapping("/admin/product-detail")
@@ -70,8 +55,8 @@ public class ProductDetailsController {
     @GetMapping("/add")
     public String addForm(Model model) {
         model.addAttribute("products", sanPhamADMRepository.findAll());
-        model.addAttribute("sizes", kichCoRepository.findAll());
-        model.addAttribute("colors", mauSacRepository.findAll());
+        model.addAttribute("sizes", kichCoRepository.findByTrangThaiTrue());
+        model.addAttribute("colors", mauSacRepository.findByTrangThaiTrue());
 
         model.addAttribute("pageTitle", "Thêm sản phẩm chi tiết");
         model.addAttribute("activeGroup", "product_detail");
@@ -84,8 +69,8 @@ public class ProductDetailsController {
     @PostMapping("/save")
     @Transactional
     public String save(@RequestParam Integer sanPhamId,
-                       @RequestParam Integer kichCoId,
-                       @RequestParam Integer mauSacId,
+                       @RequestParam List<Integer> kichCoIds,
+                       @RequestParam List<Integer> mauSacIds,
                        @RequestParam BigDecimal giaNhap,
                        @RequestParam BigDecimal giaBan,
                        @RequestParam Integer soLuong,
@@ -93,7 +78,8 @@ public class ProductDetailsController {
                        RedirectAttributes ra) {
 
         try {
-            if (sanPhamId == null || kichCoId == null || mauSacId == null) {
+            if (sanPhamId == null || kichCoIds == null || kichCoIds.isEmpty()
+                    || mauSacIds == null || mauSacIds.isEmpty()) {
                 ra.addFlashAttribute("error", "Thiếu dữ liệu sản phẩm / kích cỡ / màu sắc");
                 return "redirect:/admin/product-detail/add";
             }
@@ -114,59 +100,64 @@ public class ProductDetailsController {
             }
 
             if (soLuong == null || soLuong <= 0) {
-                ra.addFlashAttribute("error", "Số lượng nhập thêm phải lớn hơn 0");
+                ra.addFlashAttribute("error", "Số lượng phải lớn hơn 0");
                 return "redirect:/admin/product-detail/add";
             }
 
             SanPham sanPham = sanPhamADMRepository.findById(sanPhamId)
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm"));
 
-            KichCo kichCo = kichCoRepository.findById(kichCoId)
-                    .orElseThrow(() -> new RuntimeException("Không tìm thấy kích cỡ"));
+            int soBienTheMoi = 0;
+            int soBienTheCapNhat = 0;
 
-            MauSac mauSac = mauSacRepository.findById(mauSacId)
-                    .orElseThrow(() -> new RuntimeException("Không tìm thấy màu sắc"));
+            for (Integer mauSacId : mauSacIds) {
+                MauSac mauSac = mauSacRepository.findById(mauSacId)
+                        .orElseThrow(() -> new RuntimeException("Không tìm thấy màu sắc: " + mauSacId));
 
-            Optional<SanPhamChiTiet> existingOpt = sanPhamChiTietADMRepository
-                    .findBySanPham_IdAndKichCo_IdAndMauSac_Id(sanPhamId, kichCoId, mauSacId);
-
-            if (existingOpt.isPresent()) {
-                SanPhamChiTiet spct = existingOpt.get();
-
-                int soLuongCu = spct.getSoLuong() == null ? 0 : spct.getSoLuong();
-                spct.setSoLuong(soLuongCu + soLuong);
-
-                spct.setGiaNhap(giaNhap);
-                spct.setGiaBan(giaBan);
-                spct.setTrangThai(true);
-
-                sanPhamChiTietADMRepository.save(spct);
-
+                // Ảnh đang đi theo màu -> chỉ lưu 1 lần cho mỗi màu
                 if (hasRealFiles(images)) {
                     replaceImagesByProductAndColor(sanPham, mauSac, images);
                 }
 
-                ra.addFlashAttribute("success", "Đã nhập thêm hàng cho biến thể đã tồn tại");
-                return "redirect:/admin/product-detail";
+                for (Integer kichCoId : kichCoIds) {
+                    KichCo kichCo = kichCoRepository.findById(kichCoId)
+                            .orElseThrow(() -> new RuntimeException("Không tìm thấy kích cỡ: " + kichCoId));
+
+                    Optional<SanPhamChiTiet> existingOpt = sanPhamChiTietADMRepository
+                            .findBySanPham_IdAndKichCo_IdAndMauSac_Id(sanPhamId, kichCoId, mauSacId);
+
+                    if (existingOpt.isPresent()) {
+                        SanPhamChiTiet spct = existingOpt.get();
+
+                        int soLuongCu = spct.getSoLuong() == null ? 0 : spct.getSoLuong();
+                        spct.setSoLuong(soLuongCu + soLuong);
+                        spct.setGiaNhap(giaNhap);
+                        spct.setGiaBan(giaBan);
+                        spct.setTrangThai(true);
+
+                        sanPhamChiTietADMRepository.save(spct);
+                        soBienTheCapNhat++;
+                    } else {
+                        SanPhamChiTiet spct = SanPhamChiTiet.builder()
+                                .sanPham(sanPham)
+                                .kichCo(kichCo)
+                                .mauSac(mauSac)
+                                .giaNhap(giaNhap)
+                                .giaBan(giaBan)
+                                .soLuong(soLuong)
+                                .trangThai(true)
+                                .build();
+
+                        sanPhamChiTietADMRepository.save(spct);
+                        soBienTheMoi++;
+                    }
+                }
             }
 
-            SanPhamChiTiet spct = SanPhamChiTiet.builder()
-                    .sanPham(sanPham)
-                    .kichCo(kichCo)
-                    .mauSac(mauSac)
-                    .giaNhap(giaNhap)
-                    .giaBan(giaBan)
-                    .soLuong(soLuong)
-                    .trangThai(true)
-                    .build();
-
-            sanPhamChiTietADMRepository.save(spct);
-
-            if (hasRealFiles(images)) {
-                replaceImagesByProductAndColor(sanPham, mauSac, images);
-            }
-
-            ra.addFlashAttribute("success", "Thêm sản phẩm chi tiết thành công");
+            ra.addFlashAttribute(
+                    "success",
+                    "Tạo mới " + soBienTheMoi + " biến thể, cập nhật " + soBienTheCapNhat + " biến thể"
+            );
             return "redirect:/admin/product-detail";
 
         } catch (Exception e) {

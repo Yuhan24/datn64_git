@@ -64,7 +64,7 @@
                            th:attr="data-ngaytao=${hd.ngayTao}">
 
                             <div class="waiting-order-code" th:text="${hd.maDonHang}">HD001</div>
-                            <div class="waiting-order-time countdown">30:00</div>
+                            <div class="waiting-order-time countdown">60:00</div>
                         </a>
                     </div>
                 </div>
@@ -408,7 +408,7 @@
                     if (!ngayTao || !countdownEl) return;
 
                     const createdAt = new Date(ngayTao.replace(' ', 'T'));
-                    const expireAt = new Date(createdAt.getTime() + 30 * 60 * 1000);
+                    const expireAt = new Date(createdAt.getTime() + 60 * 60 * 1000);
 
                     const diff = expireAt - now;
 

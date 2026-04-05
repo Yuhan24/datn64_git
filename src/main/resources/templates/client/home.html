@@ -2,106 +2,344 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Danh sách sản phẩm</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>HaLy - Trang chủ</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <link rel="stylesheet" th:href="@{/css/product-list-client.css}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
 <div th:replace="~{client/menu :: menu}"></div>
 
-<div class="container py-4">
-    <div class="row g-4 align-items-start">
+<div class="home-page">
+    <div class="container">
 
-        <!-- Nội dung sản phẩm -->
-        <div class="col-lg-9">
-            <div class="d-flex justify-content-between align-items-center flex-wrap top-bar">
+        <!-- HERO -->
+        <section class="hero-section">
+            <a th:href="@{/shop/product}" class="hero-banner">
+                <img th:src="@{/images/haly-banner.png}" alt="Banner HaLy">
+            </a>
+        </section>
+        <section class="intro-section">
+            <div class="intro-content">
+                <h2>HaLy Shirt</h2>
+                <p>
+                    Phong cách tối giản – hiện đại – dễ phối.
+                    Tập trung vào chất liệu và form dáng chuẩn.
+                </p>
+            </div>
+        </section>
+
+        <!-- PRODUCT SECTION -->
+        <section class="product-section">
+            <div class="section-head">
                 <div>
-                    <h2 class="page-title">Danh sách sản phẩm</h2>
-                    <div class="result-count">
-                        Tổng:
+                    <h2>Sản phẩm nổi bật</h2>
+                    <p>
                         <span th:text="${products != null ? #lists.size(products) : 0}">0</span> sản phẩm
-                    </div>
+                    </p>
                 </div>
 
-                <div class="sort-box mt-3 mt-lg-0">
-                    <form method="get" th:action="@{/shop/product}" class="d-flex align-items-center gap-2">
-
-                        <input type="hidden" name="mauIds"
-                               th:each="m : ${selectedMauIds}"
-                               th:value="${m}">
-
-                        <input type="hidden" name="sizeIds"
-                               th:each="s : ${selectedSizeIds}"
-                               th:value="${s}">
-
-                        <input type="hidden" name="prices"
-                               th:each="p : ${selectedPrices}"
-                               th:value="${p}">
-
-                        <label class="fw-semibold mb-0">Sắp xếp:</label>
-
-                        <select name="sort" class="form-select w-auto" onchange="this.form.submit()">
-                            <option value="" th:selected="${selectedSort == null or selectedSort == ''}">Mặc định</option>
-                            <option value="gia-tang" th:selected="${selectedSort == 'gia-tang'}">Giá tăng dần</option>
-                            <option value="gia-giam" th:selected="${selectedSort == 'gia-giam'}">Giá giảm dần</option>
-                        </select>
-                    </form>
-                </div>
+                <a th:href="@{/shop/product}" class="view-all">Xem tất cả</a>
             </div>
 
-            <div class="row g-4">
-                <div class="col-md-6 col-xl-4"
+            <div class="product-grid" th:if="${products != null and !#lists.isEmpty(products)}">
+                <div class="product-card"
                      th:each="p : ${products}"
                      th:if="${p.chiTietList != null and !#lists.isEmpty(p.chiTietList)}">
-                    <div class="product-card">
 
-                        <div class="product-image-wrap">
-                            <span class="badge-custom">Nổi bật</span>
+                    <a th:href="@{/shop/detail/{id}(id=${p.id})}" class="product-image">
+                        <img th:src="@{'/images/' + ${p.hinhAnh}}" alt="Ảnh sản phẩm">
+                    </a>
 
-                            <a th:href="@{/shop/detail/{id}(id=${p.id})}">
-                                <img th:src="@{'/images/' + ${p.hinhAnh}}"
-                                     class="product-image"
-                                     alt="Ảnh sản phẩm">
-                            </a>
+                    <div class="product-body">
+                        <h3 class="product-name" th:text="${p.tenSanPham}">Tên sản phẩm</h3>
+
+                        <div class="product-price"
+                             th:text="${#numbers.formatDecimal(p.giaMacDinh,0,'COMMA',0,'POINT')} + ' đ'">
+                            350.000 đ
                         </div>
 
-                        <div class="p-3">
-                            <div class="product-name" th:text="${p.tenSanPham}">
-                                Tên sản phẩm
-                            </div>
-
-                            <div class="mb-3">
-                    <span class="price-current"
-                          th:text="${#numbers.formatDecimal(p.giaMacDinh,0,'COMMA',0,'POINT')} + 'đ'">
-                    </span>
-                            </div>
-
-                            <div class="product-actions d-grid gap-2">
-                                <a th:href="@{/shop/detail/{id}(id=${p.id})}"
-                                   class="btn btn-view">
-                                    Xem chi tiết
-                                </a>
-
-                                <a th:href="@{/shop/detail/{id}(id=${p.id})}"
-                                   class="btn btn-outline-dark">
-                                    Mua ngay
-                                </a>
-                            </div>
-                        </div>
-
+                        <a th:href="@{/shop/detail/{id}(id=${p.id})}" class="product-btn">
+                            Xem chi tiết
+                        </a>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Bộ lọc bên phải -->
-        <div class="col-lg-3">
-            <div th:replace="~{client/filter :: filter}"></div>
-        </div>
+            <div class="empty-box" th:if="${products == null or #lists.isEmpty(products)}">
+                Chưa có sản phẩm để hiển thị.
+            </div>
+        </section>
 
     </div>
 </div>
 
+<style>
+    :root{
+        --bg: #f8f8f8;
+        --card: #ffffff;
+        --text: #111111;
+        --muted: #777777;
+        --line: #ececec;
+        --dark: #141414;
+        --gold: #caa15b;
+        --shadow: 0 10px 30px rgba(0,0,0,.06);
+        --radius-lg: 28px;
+        --radius-md: 18px;
+    }
+
+    body{
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family: "Segoe UI", Arial, sans-serif;
+    }
+
+    a{
+        text-decoration: none;
+    }
+
+    .home-page{
+        padding: 24px 0 60px;
+    }
+
+    .hero-section{
+        margin-bottom: 38px;
+    }
+
+    .hero-banner{
+        position: relative;
+        height: 520px;
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        box-shadow: var(--shadow);
+        background: #ddd;
+    }
+
+    .hero-banner img{
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+
+    .hero-overlay{
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(90deg, rgba(0,0,0,.52) 0%, rgba(0,0,0,.18) 45%, rgba(0,0,0,.05) 100%);
+        display: flex;
+        align-items: center;
+        padding: 40px;
+    }
+
+    .hero-content{
+        max-width: 420px;
+        color: #fff;
+    }
+
+    .hero-tag{
+        display: inline-block;
+        padding: 8px 14px;
+        border-radius: 999px;
+        background: rgba(255,255,255,.14);
+        border: 1px solid rgba(255,255,255,.2);
+        font-size: 13px;
+        font-weight: 700;
+        margin-bottom: 14px;
+        backdrop-filter: blur(6px);
+    }
+
+    .hero-title{
+        margin: 0 0 22px;
+        font-size: 44px;
+        font-weight: 800;
+        line-height: 1.15;
+    }
+
+    .hero-btn{
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 150px;
+        height: 48px;
+        padding: 0 18px;
+        border-radius: 14px;
+        background: #fff;
+        color: var(--dark);
+        font-weight: 700;
+        transition: .25s;
+    }
+
+    .hero-btn:hover{
+        background: var(--gold);
+        color: #fff;
+    }
+
+    .product-section{
+        margin-top: 10px;
+    }
+
+    .section-head{
+        display: flex;
+        justify-content: space-between;
+        align-items: end;
+        gap: 16px;
+        flex-wrap: wrap;
+        margin-bottom: 22px;
+    }
+
+    .section-head h2{
+        margin: 0 0 6px;
+        font-size: 30px;
+        font-weight: 800;
+        color: var(--dark);
+    }
+
+    .section-head p{
+        margin: 0;
+        color: var(--muted);
+        font-size: 14px;
+    }
+
+    .view-all{
+        color: var(--dark);
+        font-weight: 700;
+    }
+
+    .product-grid{
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 22px;
+    }
+
+    .product-card{
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 8px 24px rgba(0,0,0,.05);
+        transition: .25s;
+    }
+
+    .product-card:hover{
+        transform: translateY(-4px);
+        box-shadow: 0 16px 36px rgba(0,0,0,.08);
+    }
+
+    .product-image{
+        display: block;
+        height: 300px;
+        background: #f1f1f1;
+        overflow: hidden;
+    }
+
+    .product-image img{
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform .35s ease;
+    }
+
+    .product-card:hover .product-image img{
+        transform: scale(1.04);
+    }
+
+    .product-body{
+        padding: 16px;
+    }
+
+    .product-name{
+        margin: 0 0 10px;
+        font-size: 16px;
+        font-weight: 700;
+        line-height: 1.5;
+        color: var(--dark);
+        min-height: 48px;
+    }
+
+    .product-price{
+        margin-bottom: 14px;
+        font-size: 20px;
+        font-weight: 800;
+        color: var(--gold);
+    }
+
+    .product-btn{
+        width: 100%;
+        height: 42px;
+        border-radius: 12px;
+        background: var(--dark);
+        color: #fff;
+        font-weight: 700;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: .25s;
+    }
+
+    .product-btn:hover{
+        background: #2a2a2a;
+        color: #fff;
+    }
+
+    .empty-box{
+        background: #fff;
+        border: 1px solid var(--line);
+        border-radius: 20px;
+        padding: 50px 20px;
+        text-align: center;
+        color: var(--muted);
+    }
+
+    @media (max-width: 1199px){
+        .product-grid{
+            grid-template-columns: repeat(3, 1fr);
+        }
+    }
+
+    @media (max-width: 991px){
+        .hero-banner{
+            height: 440px;
+        }
+
+        .hero-title{
+            font-size: 36px;
+        }
+
+        .product-grid{
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media (max-width: 576px){
+        .home-page{
+            padding-top: 16px;
+        }
+
+        .hero-banner{
+            height: 360px;
+            border-radius: 20px;
+        }
+
+        .hero-overlay{
+            padding: 22px;
+        }
+
+        .hero-title{
+            font-size: 28px;
+            margin-bottom: 16px;
+        }
+
+        .section-head h2{
+            font-size: 24px;
+        }
+
+        .product-grid{
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
